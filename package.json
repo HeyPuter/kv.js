@@ -1,0 +1,19 @@
+{
+  "name": "kv.js",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Fast, modern, in-memory key-value store for JavaScript. The perfect solution for caching in JavaScript.",
+  "main": "kv.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "cache",
+    "nodejs",
+    "javascript"
+  ],
+  "author": "Nariman Jelveh",
+  "dependencies": {
+    "glob": "^10.1.0"
+  }
+}
