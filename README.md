@@ -32,6 +32,8 @@ kv.del('foo');
 <details>
   <summary><strong><code>set</code></strong></summary>
 
+  Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
+
   ```javascript
   // Set a basic key-value pair
   kv.set('username', 'john_doe'); // Output: 'OK'
@@ -67,6 +69,8 @@ kv.del('foo');
 
 <details>
   <summary><strong><code>get</code></strong></summary>
+  
+  Get the value of a key.
   
   ```javascript
   // Example 1: Get the value of an existing key
@@ -113,6 +117,8 @@ kv.del('foo');
 <details>
   <summary><strong><code>del</code></strong></summary>
 
+  Delete specified key(s). If a key does not exist, it is ignored.
+
   ```javascript
   // Delete a single key ("key1"), returns 1 if the key was deleted, 0 if it did not exist or has expired.
   kv.del("key1");
@@ -134,6 +140,8 @@ kv.del('foo');
 <details>
   <summary><strong><code>exists</code></strong></summary>
 
+  Check if one or more keys exist.
+  
   ```javascript
   // Check if a single key ("key1") exists, returns 1 if the key exists and is not expired, 0 otherwise.
   kv.exists("key1");
