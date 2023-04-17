@@ -271,7 +271,7 @@ kv.del('foo');
 
   ```javascript
   // Check the time-to-live of key 'username' (assuming it exists and has not expired)
-  instance.ttl('username');
+  kv.ttl('username');
   ```
 </details>
 
@@ -280,6 +280,6 @@ kv.del('foo');
 
   ```javascript
   // Rename the key 'username' to 'email' (assuming 'username' exists)
-  instance.rename('username', 'email');
+  kv.rename('username', 'email');
   ```
 </details>
