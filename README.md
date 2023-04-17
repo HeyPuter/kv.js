@@ -352,6 +352,35 @@ kv.del('foo');
   ```
 </details>
 
+<details>
+  <summary><strong><code>zadd</code></strong></summary>
+
+  ```javascript
+  // Add a new member 'Alice' with a score of 10 to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+
+  // Add a new member 'Bob' with a score of 25 to the sorted set 'students'.
+  kv.zadd('students', 25, 'Bob');
+
+  // Since 'Bob' already exists in the sorted set 'students', his score is updated to 26.
+  kv.zadd('students', 26, 'Bob');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zcard</code></strong></summary>
+
+  ```javascript
+  // Add two members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+
+  // Get the number of members in the sorted set 'students'.
+  kv.zcard('students'); // Output: 2
+  ```
+</details>
+
+
 ## License
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
