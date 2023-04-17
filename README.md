@@ -2,7 +2,7 @@
 <p align="center">Advanced in-memory caching module for JavaScript. Inspired by Redis.</p>
 <hr>
 
-KV.JS is a fast, in-memory data store written in pure JavaScript, heavily inpired by Redis. It is capable of handling multiple data types, including strings, lists, sets, sorted sets, hashes, and geospatial indexes. Additionally, with more than 140 functions, KV.JS provides a vast variety of operations, ranging from `SET`, `GET`, `EXPIRE`, `DEL` to `INCR`, `DECR`, `LPUSH`, `RPUSH`, `SADD`, `SREM`, `HSET`, `HGET`, and many many more.
+KV.JS is a fast, in-memory data store written in pure JavaScript, heavily inpired by Redis. It is capable of handling multiple data types, including strings, lists, sets, sorted sets, hashes, and geospatial indexes. Additionally, **with more than 140 functions**, KV.JS supports a vast variety of operations, ranging from `SET`, `GET`, `EXPIRE`, `DEL` to `INCR`, `DECR`, `LPUSH`, `RPUSH`, `SADD`, `SREM`, `HSET`, `HGET`, and many many more.
 
 ## Installation
 ```bash
@@ -27,7 +27,7 @@ console.log(value); // "bar"
 // Delete a value
 kv.del('foo');
 ```
-## API
+## More usage examples
 
 <details>
   <summary><strong><code>set</code></strong></summary>
@@ -113,6 +113,14 @@ kv.del('foo');
   ```
 </details>
 
+<details>
+  <summary><strong><code>ttl</code></strong></summary>
+
+  ```javascript
+  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
+  kv.ttl('username');
+  ```
+</details>
 
 <details>
   <summary><strong><code>del</code></strong></summary>
@@ -271,15 +279,6 @@ kv.del('foo');
 
   // Find all keys matching the pattern 'username' (assuming some keys matching the pattern exist)
   kv.keys('username');
-  ```
-</details>
-
-<details>
-  <summary><strong><code>ttl</code></strong></summary>
-
-  ```javascript
-  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
-  kv.ttl('username');
   ```
 </details>
 
