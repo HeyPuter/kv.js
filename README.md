@@ -89,6 +89,28 @@ kv.del('foo');
 </details>
 
 <details>
+  <summary><strong><code>expire</code></strong></summary>
+
+  ```javascript
+  // Set a key's time to live in seconds without any option
+  kv.expire('username', 60);
+
+  // Set a key's time to live in seconds only if the key does not exist
+  kv.expire('username', 120, 'NX');
+
+  // Set a key's time to live in seconds only if the key exists
+  kv.expire('username', 180, 'XX');
+
+  // Set a key's time to live in seconds only if the key's expiry time is greater than the specified time
+  kv.expire('username', 240, 'GT');
+
+  // Set a key's time to live in seconds only if the key's expiry time is less than the specified time
+  kv.expire('username', 300, 'LT');
+  ```
+</details>
+
+
+<details>
   <summary><strong><code>del</code></strong></summary>
 
   ```javascript
@@ -127,5 +149,119 @@ kv.del('foo');
 
   // Check if multiple keys ("key4", "key5", "key6") exist, returns the number of existing keys (0 to 3) that are not expired.
   kv.exists("key4", "key5", "key6");
+  ```
+</details>
+
+<details>
+  <summary><strong><code>incr</code></strong></summary>
+
+  ```javascript
+  // Increment the value of an existing key ("key1") by 1, returns the new value of the key.
+  kv.incr("key1");
+
+  // Increment the value of a non-existing key ("nonExistentKey"), returns 1 as the new value of the key (since it's initialized as 0 and incremented by 1).
+  kv.incr("nonExistentKey");
+
+  // Increment the value of an expired key ("expiredKey"), if the key has expired, it will be treated as a new key, returns 1 as the new value of the key.
+  kv.incr("expiredKey");
+
+  // Increment the value of an existing key ("key2") with a non-numeric value, throws an error.
+  kv.incr("key2"); // Assuming "key2" has a non-numeric value
+
+  // Increment the value of an existing key ("key3") with a numeric value, returns the incremented value of the key.
+  kv.incr("key3"); // Assuming "key3" has a numeric value
+  ```
+</details>
+
+<details>
+  <summary><strong><code>incrby</code></strong></summary>
+
+  ```javascript
+  // Increment the value of a key by 5 (assuming the key does not exist or its value is an integer)
+  kv.incrby('counter', 5);
+
+  // Increment the value of a key by -3 (assuming the key does not exist or its value is an integer)
+  kv.incrby('counter', -3);
+
+  // Increment the value of a key by 10 (assuming the key does not exist or its value is an integer)
+  kv.incrby('counter', 10);
+
+  // Increment the value of a key by 0 (assuming the key does not exist or its value is an integer)
+  kv.incrby('counter', 0);
+
+  // Increment the value of a key by -7 (assuming the key does not exist or its value is an integer)
+  kv.incrby('counter', -7);
+  ```
+</details>
+
+<details>
+  <summary><strong><code>decr</code></strong></summary>
+
+  ```javascript
+  // Assuming the key 'counter' has been set, decrement the value of the key by 1
+  kv.decr('counter');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>decrby</code></strong></summary>
+
+  ```javascript
+  // Assuming the key 'counter' has been set, decrement the value of the key by 5 (output: -5)
+  kv.decrby('counter', 5);
+
+  // Assuming the key 'counter' has been set, decrement the value of the key by -3 (output: 3)
+  kv.decrby('counter', -3);
+
+  // Assuming the key 'counter' has been set, decrement the value of the key by 10 (output: -7)
+  kv.decrby('counter', 10);
+
+  // Assuming the key 'counter' has been set, decrement the value of the key by 0 (output: 0)
+  kv.decrby('counter', 0);
+
+  // Assuming the key 'counter' has been set, decrement the value of the key by -7 (output: 4)
+  kv.decrby('counter', -7);
+  ```
+</details>
+
+<details>
+  <summary><strong><code>mget</code></strong></summary>
+
+  ```javascript
+  // Retrieve the values of key 'username'
+  kv.mget('username');
+
+  // Retrieve the values of keys 'username' and 'email' (assuming they exist)
+  kv.mget('username', 'email');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>mset</code></strong></summary>
+
+  ```javascript
+  // Set the values of keys 'username' and 'email' to 'johndoe' and 'johndoe@example.com', respectively
+  kv.mset('username', 'johndoe', 'email', 'johndoe@example.com');
+
+  // Set the values of keys 'counter' and 'score' to 0 and 100, respectively
+  kv.mset('counter', 0, 'score', 100);
+  ```
+</details>
+
+<details>
+  <summary><strong><code>keys</code></strong></summary>
+
+  ```javascript
+  // Find all keys matching the pattern 'user:*' (assuming some keys matching the pattern exist)
+  kv.keys('user:*');
+
+  // Find all keys matching the pattern 'product:*' (assuming some keys matching the pattern exist)
+  kv.keys('product:*');
+
+  // Find all keys matching the pattern '*:email' (assuming some keys matching the pattern exist)
+  kv.keys('*:email');
+
+  // Find all keys matching the pattern 'username' (assuming some keys matching the pattern exist)
+  kv.keys('username');
   ```
 </details>
