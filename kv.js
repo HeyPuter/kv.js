@@ -3016,4 +3016,4 @@ class kvjs {
     }    
 }
 
-exports.kvjs = kvjs;
+module.exports = kvjs;

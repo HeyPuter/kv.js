@@ -1,9 +1,13 @@
 {
-  "name": "kv.js",
-  "version": "0.0.1",
+  "name": "@heyputer/kv.js",
+  "version": "0.0.2",
   "license": "MIT",
   "description": "Fast, modern, in-memory key-value store for JavaScript. The perfect solution for caching in JavaScript.",
   "main": "kv.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HeyPuter/kv.js.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
