@@ -30,95 +30,32 @@ kv.del('foo');
 ## More usage examples
 
 <details>
-  <summary><strong><code>set</code></strong></summary>
-
-  Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
+  <summary><strong><code>decr</code></strong></summary>
 
   ```javascript
-  // Set a basic key-value pair
-  kv.set('username', 'john_doe'); // Output: 'OK'
-
-  // Set a key-value pair only if the key does not already exist (NX option)
-  kv.set('username', 'jane_doe', ['NX']);
-
-  // Set a key-value pair only if the key already exists (XX option)
-  kv.set('email', 'jane@example.com', ['XX']);
-
-  // Set a key-value pair with an expiration time in seconds (EX option)
-  kv.set('session_token', 'abc123', ['EX', 3600]);
-
-  // Get the existing value and set a new value for a key (GET option)
-  kv.set('username', 'mary_smith', ['GET']);
-
-  // Set a key-value pair with an expiration time in milliseconds (PX option)
-  kv.set('temp_data', '42', ['PX', 1000]);
-
-  // Set a key-value pair with an expiration time at a specific Unix timestamp in seconds (EXAT option)
-  kv.set('event_data', 'event1', ['EXAT', 1677649420]);
-
-  // Set a key-value pair with an expiration time at a specific Unix timestamp in milliseconds (PXAT option)
-  kv.set('event_data2', 'event2', ['PXAT', 1677649420000]);
-
-  // Set a key-value pair and keep the original TTL if the key already exists (KEEPTTL option)
-  kv.set('username', 'alice_wonder', ['KEEPTTL']);
-
-  // Set a key-value pair with multiple options (NX, EX, and GET options)
-  kv.set('new_user', 'carol_baker', ['NX', 'EX', 7200, 'GET']);
+  // Assuming the key 'counter' has been set, decrement the value of the key by 1
+  kv.decr('counter');
   ```
 </details>
 
 <details>
-  <summary><strong><code>get</code></strong></summary>
-  
-  Get the value of a key.
-  
-  ```javascript
-  // Example 1: Get the value of an existing key
-  kv.get('username'); // Returns the value associated with the key 'username'
-
-  // Example 2: Get the value of a non-existent key
-  kv.get('nonexistent'); // Returns null
-
-  // Example 3: Get the value of an expired key (assuming 'expiredKey' was set with an expiration)
-  kv.get('expiredKey'); // Returns null
-
-  // Example 4: Get the value of a key after updating its value
-  kv.set('color', 'red'); // Sets the key 'color' to the value 'red'
-  kv.get('color'); // Returns 'red'
-
-  // Example 5: Get the value of a key after deleting it (assuming 'deletedKey' was previously set)
-  kv.delete('deletedKey'); // Deletes the key 'deletedKey'
-  kv.get('deletedKey'); // Returns null
-  ```
-</details>
-
-<details>
-  <summary><strong><code>expire</code></strong></summary>
+  <summary><strong><code>decrby</code></strong></summary>
 
   ```javascript
-  // Set a key's time to live in seconds without any option
-  kv.expire('username', 60);
+  // Assuming the key 'counter' has been set, decrement the value of the key by 5 (output: -5)
+  kv.decrby('counter', 5);
 
-  // Set a key's time to live in seconds only if the key does not exist
-  kv.expire('username', 120, 'NX');
+  // Assuming the key 'counter' has been set, decrement the value of the key by -3 (output: 3)
+  kv.decrby('counter', -3);
 
-  // Set a key's time to live in seconds only if the key exists
-  kv.expire('username', 180, 'XX');
+  // Assuming the key 'counter' has been set, decrement the value of the key by 10 (output: -7)
+  kv.decrby('counter', 10);
 
-  // Set a key's time to live in seconds only if the key's expiry time is greater than the specified time
-  kv.expire('username', 240, 'GT');
+  // Assuming the key 'counter' has been set, decrement the value of the key by 0 (output: 0)
+  kv.decrby('counter', 0);
 
-  // Set a key's time to live in seconds only if the key's expiry time is less than the specified time
-  kv.expire('username', 300, 'LT');
-  ```
-</details>
-
-<details>
-  <summary><strong><code>ttl</code></strong></summary>
-
-  ```javascript
-  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
-  kv.ttl('username');
+  // Assuming the key 'counter' has been set, decrement the value of the key by -7 (output: 4)
+  kv.decrby('counter', -7);
   ```
 </details>
 
@@ -169,6 +106,52 @@ kv.del('foo');
 </details>
 
 <details>
+  <summary><strong><code>expire</code></strong></summary>
+
+  ```javascript
+  // Set a key's time to live in seconds without any option
+  kv.expire('username', 60);
+
+  // Set a key's time to live in seconds only if the key does not exist
+  kv.expire('username', 120, 'NX');
+
+  // Set a key's time to live in seconds only if the key exists
+  kv.expire('username', 180, 'XX');
+
+  // Set a key's time to live in seconds only if the key's expiry time is greater than the specified time
+  kv.expire('username', 240, 'GT');
+
+  // Set a key's time to live in seconds only if the key's expiry time is less than the specified time
+  kv.expire('username', 300, 'LT');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>get</code></strong></summary>
+  
+  Get the value of a key.
+  
+  ```javascript
+  // Example 1: Get the value of an existing key
+  kv.get('username'); // Returns the value associated with the key 'username'
+
+  // Example 2: Get the value of a non-existent key
+  kv.get('nonexistent'); // Returns null
+
+  // Example 3: Get the value of an expired key (assuming 'expiredKey' was set with an expiration)
+  kv.get('expiredKey'); // Returns null
+
+  // Example 4: Get the value of a key after updating its value
+  kv.set('color', 'red'); // Sets the key 'color' to the value 'red'
+  kv.get('color'); // Returns 'red'
+
+  // Example 5: Get the value of a key after deleting it (assuming 'deletedKey' was previously set)
+  kv.delete('deletedKey'); // Deletes the key 'deletedKey'
+  kv.get('deletedKey'); // Returns null
+  ```
+</details>
+
+<details>
   <summary><strong><code>incr</code></strong></summary>
 
   ```javascript
@@ -211,32 +194,20 @@ kv.del('foo');
 </details>
 
 <details>
-  <summary><strong><code>decr</code></strong></summary>
+  <summary><strong><code>keys</code></strong></summary>
 
   ```javascript
-  // Assuming the key 'counter' has been set, decrement the value of the key by 1
-  kv.decr('counter');
-  ```
-</details>
+  // Find all keys matching the pattern 'user:*' (assuming some keys matching the pattern exist)
+  kv.keys('user:*');
 
-<details>
-  <summary><strong><code>decrby</code></strong></summary>
+  // Find all keys matching the pattern 'product:*' (assuming some keys matching the pattern exist)
+  kv.keys('product:*');
 
-  ```javascript
-  // Assuming the key 'counter' has been set, decrement the value of the key by 5 (output: -5)
-  kv.decrby('counter', 5);
+  // Find all keys matching the pattern '*:email' (assuming some keys matching the pattern exist)
+  kv.keys('*:email');
 
-  // Assuming the key 'counter' has been set, decrement the value of the key by -3 (output: 3)
-  kv.decrby('counter', -3);
-
-  // Assuming the key 'counter' has been set, decrement the value of the key by 10 (output: -7)
-  kv.decrby('counter', 10);
-
-  // Assuming the key 'counter' has been set, decrement the value of the key by 0 (output: 0)
-  kv.decrby('counter', 0);
-
-  // Assuming the key 'counter' has been set, decrement the value of the key by -7 (output: 4)
-  kv.decrby('counter', -7);
+  // Find all keys matching the pattern 'username' (assuming some keys matching the pattern exist)
+  kv.keys('username');
   ```
 </details>
 
@@ -265,29 +236,58 @@ kv.del('foo');
 </details>
 
 <details>
-  <summary><strong><code>keys</code></strong></summary>
-
-  ```javascript
-  // Find all keys matching the pattern 'user:*' (assuming some keys matching the pattern exist)
-  kv.keys('user:*');
-
-  // Find all keys matching the pattern 'product:*' (assuming some keys matching the pattern exist)
-  kv.keys('product:*');
-
-  // Find all keys matching the pattern '*:email' (assuming some keys matching the pattern exist)
-  kv.keys('*:email');
-
-  // Find all keys matching the pattern 'username' (assuming some keys matching the pattern exist)
-  kv.keys('username');
-  ```
-</details>
-
-<details>
   <summary><strong><code>rename</code></strong></summary>
 
   ```javascript
   // Rename the key 'username' to 'email' (assuming 'username' exists)
   kv.rename('username', 'email');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>set</code></strong></summary>
+
+  Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
+
+  ```javascript
+  // Set a basic key-value pair
+  kv.set('username', 'john_doe'); // Output: 'OK'
+
+  // Set a key-value pair only if the key does not already exist (NX option)
+  kv.set('username', 'jane_doe', ['NX']);
+
+  // Set a key-value pair only if the key already exists (XX option)
+  kv.set('email', 'jane@example.com', ['XX']);
+
+  // Set a key-value pair with an expiration time in seconds (EX option)
+  kv.set('session_token', 'abc123', ['EX', 3600]);
+
+  // Get the existing value and set a new value for a key (GET option)
+  kv.set('username', 'mary_smith', ['GET']);
+
+  // Set a key-value pair with an expiration time in milliseconds (PX option)
+  kv.set('temp_data', '42', ['PX', 1000]);
+
+  // Set a key-value pair with an expiration time at a specific Unix timestamp in seconds (EXAT option)
+  kv.set('event_data', 'event1', ['EXAT', 1677649420]);
+
+  // Set a key-value pair with an expiration time at a specific Unix timestamp in milliseconds (PXAT option)
+  kv.set('event_data2', 'event2', ['PXAT', 1677649420000]);
+
+  // Set a key-value pair and keep the original TTL if the key already exists (KEEPTTL option)
+  kv.set('username', 'alice_wonder', ['KEEPTTL']);
+
+  // Set a key-value pair with multiple options (NX, EX, and GET options)
+  kv.set('new_user', 'carol_baker', ['NX', 'EX', 7200, 'GET']);
+  ```
+</details>
+
+<details>
+  <summary><strong><code>ttl</code></strong></summary>
+
+  ```javascript
+  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
+  kv.ttl('username');
   ```
 </details>
 
