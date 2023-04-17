@@ -12,7 +12,7 @@ class kvjs {
      * @param {*} key - The key to set.
      * @param {*} value - The value to set.
      * @param {string[]} options - An array of optional arguments.
-     * @returns {string|null} - 'OK' if the operation was successful, or the existing value if the GET option is specified and the key already exists.
+     * @returns {boolean|null} - true if the operation was successful, or the existing value if the GET option is specified and the key already exists.
      */
     set(key, value, options = []) {
         let nx = false;
@@ -95,7 +95,7 @@ class kvjs {
             this.expireTimes.delete(key);
         }
 
-        return get ? oldValue : 'OK';
+        return get ? oldValue : true;
     }
 
     /**
@@ -286,7 +286,7 @@ class kvjs {
     /**
      * Set multiple keys to their respective values.
      * @param  {...any} keyValuePairs - The keys and values to set, given as alternating arguments.
-     * @returns {string} - A string indicating that the operation was successful.
+     * @returns {boolean} - A boolean indicating that the operation was successful.
      * @throws {Error} - If the number of arguments is odd.
      */
     mset(...keyValuePairs) {
@@ -298,7 +298,7 @@ class kvjs {
             this.set(keyValuePairs[i], keyValuePairs[i + 1]);
         }
 
-        return 'OK';
+        return true;
     }
 
     /**
@@ -515,7 +515,7 @@ class kvjs {
      * @param {*} key - The key to set.
      * @param {*} value - The value to set for the key.
      * @param {number} ttl - The time-to-live for the key, in milliseconds.
-     * @returns {string} - 'OK' if the key was set successfully.
+     * @returns {boolean} - true if the key was set successfully.
      */
     setex(key, value, ttl) {
         if (!this.store.has(key)) {
@@ -523,7 +523,7 @@ class kvjs {
         }
         this.set(key, value);
         this.expire(key, ttl);
-        return 'OK';
+        return true;
     }
 
     /**
@@ -692,14 +692,14 @@ class kvjs {
      * Renames a key. 
      * @param {*} key - The key to rename.
      * @param {*} newKey - The new key name.
-     * @returns {string} - 'OK' if the key was renamed, an error if the key was not renamed.
+     * @returns {boolean} - true if the key was renamed, an error if the key was not renamed.
      */
     rename(key, newKey) {
         if (!this.store.has(key)) {
             throw new Error('ERR no such key');
         }
         if (key === newKey) {
-            return 'OK';
+            return true;
         }
         const value = this.store.get(key);
         const expireTime = this.expireTimes.get(key);
@@ -709,7 +709,7 @@ class kvjs {
             this.expireTimes.set(newKey, expireTime);
             this.expireTimes.delete(key);
         }
-        return 'OK';
+        return true;
     }
 
     /**
@@ -1103,7 +1103,7 @@ class kvjs {
         }
 
         list[index] = value;
-        return 'OK';
+        return true;
     }
 
     /**
@@ -1116,7 +1116,7 @@ class kvjs {
     ltrim(key, start, stop) {
         const list = this.store.get(key);
         if (list === undefined) {
-            return 'OK';
+            return true;
         }
         if (!Array.isArray(list)) {
             throw new Error('ERR Operation against a key holding the wrong kind of value');
@@ -1128,7 +1128,7 @@ class kvjs {
         const newList = list.slice(newStart, newStop + 1);
 
         this.store.set(key, newList);
-        return 'OK';
+        return true;
     }
 
     /**
@@ -2774,7 +2774,7 @@ class kvjs {
         }
 
         this.store.set(key, hashMap);
-        return 'OK';
+        return true;
     }
 
     /**
@@ -3002,7 +3002,7 @@ class kvjs {
 
     /**
      * Removes all keys and associated values from the store and clears all expiration times
-     * @returns {string} 'OK'
+     * @returns {boolean} - Returns true if the function was successful.
      */
     flushall() {
         // Clear all keys and associated values from the store
@@ -3011,8 +3011,8 @@ class kvjs {
         // Clear all expiration times from the expirations map
         this.expireTimes.clear();
     
-        // Return 'OK' to indicate that the command was successful
-        return 'OK';
+        // Return true to indicate that the function was successful
+        return true;
     }    
 }
 

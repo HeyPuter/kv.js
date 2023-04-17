@@ -127,6 +127,42 @@ kv.del('foo');
 </details>
 
 <details>
+  <summary><strong><code>expireat</code></strong></summary>
+
+  ```javascript
+  // Set the TTL for key "user1" to expire in 30 seconds.
+  kv.expireat("user1", Math.floor(Date.now() / 1000) + 30);
+
+  // Set the TTL for key "user2" to expire at a specific UNIX timestamp (e.g. 1700000000), only if the key does not exist yet.
+  kv.expireat("user2", 1700000000, "NX");
+
+  // Set the TTL for key "user3" to expire in 45 seconds, only if the key already exists.
+  kv.expireat("user3", Math.floor(Date.now() / 1000) + 45, "XX");
+
+  // Set the TTL for key "user4" to expire in 60 seconds, only if the new TTL is greater than the current TTL.
+  kv.expireat("user4", Math.floor(Date.now() / 1000) + 60, "GT");
+
+  // Set the TTL for key "user5" to expire in 15 seconds, only if the new TTL is less than the current TTL.
+  kv.expireat("user5", Math.floor(Date.now() / 1000) + 15, "LT");
+
+  // Set the TTL for key "user6" to expire at a specific UNIX timestamp (e.g. 1705000000), only if the key already exists.
+  kv.expireat("user6", 1705000000, "XX");
+
+  // Set the TTL for key "user7" to expire in 90 seconds, only if the key does not exist yet.
+  kv.expireat("user7", Math.floor(Date.now() / 1000) + 90, "NX");
+
+  // Set the TTL for key "user8" to expire at a specific UNIX timestamp (e.g. 1710000000), only if the new TTL is greater than the current TTL.
+  kv.expireat("user8", 1710000000, "GT");
+
+  // Set the TTL for key "user9" to expire in 120 seconds, only if the new TTL is less than the current TTL.
+  kv.expireat("user9", Math.floor(Date.now() / 1000) + 120, "LT");
+
+  // Set the TTL for key "user10" to expire in 5 seconds.
+  kv.expireat("user10", Math.floor(Date.now() / 1000) + 5);
+  ```
+</details>
+
+<details>
   <summary><strong><code>get</code></strong></summary>
   
   Get the value of a key.
@@ -148,6 +184,22 @@ kv.del('foo');
   // Example 5: Get the value of a key after deleting it (assuming 'deletedKey' was previously set)
   kv.delete('deletedKey'); // Deletes the key 'deletedKey'
   kv.get('deletedKey'); // Returns null
+  ```
+</details>
+
+<details>
+  <summary><strong><code>getset</code></strong></summary>
+
+  ```javascript
+  // Set initial values for key.
+  kv.set("username", "John");
+
+  // Replace the value of "username" with "Alice" and return the old value ("John").
+  kv.getset("username", "Alice"); // Returns "John"
+
+  // Replace the value of "nonExistentKey" with "Bob" and return the old value (null).
+  kv.getset("nonExistentKey", "Bob"); // Returns null
+
   ```
 </details>
 
@@ -236,6 +288,15 @@ kv.del('foo');
 </details>
 
 <details>
+  <summary><strong><code>persist</code></strong></summary>
+
+  ```javascript
+  // Remove the expiration from the key "key1".
+  kv.persist("key1");
+  ```
+</details>
+
+<details>
   <summary><strong><code>rename</code></strong></summary>
 
   ```javascript
@@ -251,7 +312,7 @@ kv.del('foo');
 
   ```javascript
   // Set a basic key-value pair
-  kv.set('username', 'john_doe'); // Output: 'OK'
+  kv.set('username', 'john_doe'); // Output: true
 
   // Set a key-value pair only if the key does not already exist (NX option)
   kv.set('username', 'jane_doe', ['NX']);
