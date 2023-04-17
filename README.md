@@ -468,6 +468,94 @@ kv.expire('username', 60);
   ```
 </details>
 
+<details>
+  <summary><strong><code>zcount</code></strong></summary>
+
+  ```javascript
+  // Add three members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+  kv.zadd('students', 30, 'Carol');
+
+  // Get the number of members in the sorted set 'students' with a score between 10 and 25.
+  kv.zcount('students', 10, 25); // Output: 2
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zincrby</code></strong></summary>
+
+  ```javascript
+  // Add two members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+
+  // Increment the score of member 'Alice' by 5.
+  kv.zincrby('students', 5, 'Alice');
+
+  // Get the score of member 'Alice'.
+  kv.zscore('students', 'Alice'); // Output: 15
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zrange</code></strong></summary>
+
+  ```javascript
+  // Add three members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+  kv.zadd('students', 30, 'Carol');
+
+  // Get the members of the sorted set 'students' with a score between 10 and 25.
+  kv.zrange('students', 10, 25); // Output: ['Alice', 'Bob']
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zrangebyscore</code></strong></summary>
+
+  ```javascript
+  // Add three members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+  kv.zadd('students', 30, 'Carol');
+
+  // Get the members of the sorted set 'students' with a score between 10 and 25.
+  kv.zrangebyscore('students', 10, 25); // Output: ['Alice', 'Bob']
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zrank</code></strong></summary>
+
+  ```javascript
+  // Add three members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+  kv.zadd('students', 30, 'Carol');
+
+  // Get the rank of member 'Bob' in the sorted set 'students'.
+  kv.zrank('students', 'Bob'); // Output: 1
+  ```
+</details>
+
+<details>
+  <summary><strong><code>zrem</code></strong></summary>
+
+  ```javascript
+  // Add three members to the sorted set 'students'.
+  kv.zadd('students', 10, 'Alice');
+  kv.zadd('students', 25, 'Bob');
+  kv.zadd('students', 30, 'Carol');
+
+  // Remove member 'Bob' from the sorted set 'students'.
+  kv.zrem('students', 'Bob');
+
+  // Get the members of the sorted set 'students'.
+  kv.zrange('students', 0, -1); // Output: [ [ 'Alice', 10 ], [ 'Carol', 30 ] ]
+  ```
+</details>
 
 ## License
 Distributed under the MIT License. See `LICENSE.txt` for more information.
