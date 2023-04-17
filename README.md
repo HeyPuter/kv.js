@@ -399,6 +399,78 @@ kv.expire('username', 60);
 </details>
 
 <details>
+  <summary><strong><code>sinter</code></strong></summary>
+
+  This method retrieves the members that are present in all the sets provided as arguments, and returns them as a new set representing the intersection of those sets.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // add a few members to a second set
+  kv.sadd('set2', 'member2', 'member3', 'member4'); // Output: true
+  // print the members that are present in both sets
+  kv.sinter('set1', 'set2'); // Output: ['member2', 'member3']
+  ```
+</details>
+
+<details>
+  <summary><strong><code>sismember</code></strong></summary>
+
+  This method determines if a given value is a member of a set.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // check if a member is present in a set
+  kv.sismember('set1', 'member1'); // Output: true
+  // check if a member is not present in a set
+  kv.sismember('set1', 'member4'); // Output: false
+  ```
+</details>
+
+<details>
+  <summary><strong><code>smove</code></strong></summary>
+
+  This method moves a member from one set to another.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // add a few members to a second set
+  kv.sadd('set2', 'member4', 'member5', 'member6'); // Output: true
+  // move a member from one set to another
+  kv.smove('set1', 'set2', 'member1'); // Output: true
+  // print the members of the first set
+  kv.smembers('set1'); // Output: ['member2', 'member3']
+  // print the members of the second set
+  kv.smembers('set2'); // Output: ['member1', 'member4', 'member5', 'member6']
+  ```
+</details>
+
+<details>
+  <summary><strong><code>sort</code></strong></summary>
+
+  Sort the elements in a list, set or sorted set.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // sort the members of a set
+  kv.sort('set1'); // Output: ['member1', 'member2', 'member3']
+
+  // add a few members to a sorted set
+  kv.zadd('zset1', 1, 'member1', 2, 'member2', 3, 'member3'); // Output: true
+  // sort the members of a sorted set
+  kv.sort('zset1'); // Output: ['member1', 'member2', 'member3']
+
+  // add a few members to a list
+  kv.rpush('list1', 'member1', 'member2', 'member3'); // Output: true
+  // sort the members of a list
+  kv.sort('list1'); // Output: ['member1', 'member2', 'member3']
+  ```
+</details>
+
+<details>
   <summary><strong><code>smembers</code></strong></summary>
 
   This method retrieves all the members of the set value stored at key.

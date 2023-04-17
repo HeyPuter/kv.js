@@ -873,12 +873,12 @@ class kvjs {
     sismember(key, member) {
         const set = this.store.get(key);
         if (set === undefined) {
-            return 0;
+            return false;
         }
         if (!(set instanceof Set)) {
             throw new Error('ERR Operation against a key holding the wrong kind of value');
         }
-        return set.has(member) ? 1 : 0;
+        return set.has(member) ? true : false;
     }
 
     /**
