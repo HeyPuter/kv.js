@@ -16,16 +16,20 @@ const kvjs = require('@heyputer/kv.js');
 // Create a new kv.js instance
 const kv = new kvjs();
 
-// Set a value
+// Set a key
 kv.set('foo', 'bar');
 
-// Get a value
-const value = kv.get('foo');
+// Get the key's value
+kv.get('foo'); // "bar"
 
-console.log(value); // "bar"
-
-// Delete a value
+// Delete the key
 kv.del('foo');
+
+// Set another key
+kv.set('username', 'heyputer');
+
+// Automatically delete the key after 60 seconds
+kv.expire('username', 60);
 ```
 ## More usage examples
 
@@ -306,6 +310,57 @@ kv.del('foo');
 </details>
 
 <details>
+  <summary><strong><code>sadd</code></strong></summary>
+
+  Add one or more members to a set stored at key.
+
+  ```javascript
+  // add a member to a set
+  kv.sadd('set1', 'member1'); // Output: true
+
+  // add multiple members to a set
+  kv.sadd('set1', 'member2', 'member3'); // Output: true
+
+  // print the members of a set
+  kv.smembers('set1'); // Output: ['member1', 'member2', 'member3']
+
+  // add a member to a set that already contains the member
+  kv.sadd('set1', 'member1'); // Output: false
+
+  // add a member to a non-existent set
+  kv.sadd('set2', 'member1'); // Output: true
+  ```
+</details>
+
+<details>
+  <summary><strong><code>scard</code></strong></summary>
+
+  Returns the number of members of the set stored at key.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // print the number of members in a set
+  kv.scard('set1'); // Output: 3
+  ```
+</details>
+
+<details>
+  <summary><strong><code>sdiff</code></strong></summary>
+
+  This method retrieves the members of a set that are present in the first set but not in any of the subsequent sets, and returns them as a new set.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // add a few members to a second set
+  kv.sadd('set2', 'member2', 'member3', 'member4'); // Output: true
+  // print the members of the first set that are not in the second set
+  kv.sdiff('set1', 'set2'); // Output: ['member1']
+  ```
+</details>
+
+<details>
   <summary><strong><code>set</code></strong></summary>
 
   Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
@@ -342,6 +397,35 @@ kv.del('foo');
   kv.set('new_user', 'carol_baker', ['NX', 'EX', 7200, 'GET']);
   ```
 </details>
+
+<details>
+  <summary><strong><code>smembers</code></strong></summary>
+
+  This method retrieves all the members of the set value stored at key.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3'); // Output: true
+  // print the members of a set
+  kv.smembers('set1'); // Output: ['member1', 'member2', 'member3']
+  ```
+</details>
+
+<details>
+  <summary><strong><code>spop</code></strong></summary>
+
+  Removes and returns one or multiple random members from a set.
+
+  ```javascript
+  // add a few members to a set
+  kv.sadd('set1', 'member1', 'member2', 'member3', ',member4', 'member5'); // Output: true
+  // remove and return a random member from a set
+  kv.spop('set1'); // Output: one of the members
+  // remove and return a random member from a set
+  kv.spop('set1', 2); // Output: two of the remaining members
+  ```
+</details>
+
 
 <details>
   <summary><strong><code>ttl</code></strong></summary>
