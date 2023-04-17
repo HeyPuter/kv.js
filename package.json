@@ -1,6 +1,6 @@
 {
   "name": "@heyputer/kv.js",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "license": "MIT",
   "description": "Fast, modern, in-memory key-value store for JavaScript. The perfect solution for caching in JavaScript.",
   "main": "kv.js",
