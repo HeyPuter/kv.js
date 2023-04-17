@@ -290,3 +290,7 @@ kv.del('foo');
   kv.rename('username', 'email');
   ```
 </details>
+
+## License
+Distributed under the MIT License. See `LICENSE.txt` for more information.
+
