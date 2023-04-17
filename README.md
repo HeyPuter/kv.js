@@ -265,3 +265,21 @@ kv.del('foo');
   kv.keys('username');
   ```
 </details>
+
+<details>
+  <summary><strong><code>ttl</code></strong></summary>
+
+  ```javascript
+  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
+  instance.ttl('username');
+  ```
+</details>
+
+<details>
+  <summary><strong><code>rename</code></strong></summary>
+
+  ```javascript
+  // Rename the key 'username' to 'email' (assuming 'username' exists)
+  instance.rename('username', 'email');
+  ```
+</details>
