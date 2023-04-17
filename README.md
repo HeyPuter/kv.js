@@ -347,8 +347,12 @@ kv.del('foo');
   <summary><strong><code>ttl</code></strong></summary>
 
   ```javascript
-  // Check the time-to-live of key 'username' (assuming it exists and has not expired)
-  kv.ttl('username');
+  // Set key 'username' to 'heyputer' and set its expiration to 60 seconds
+  kv.set('username', 'heyputer');
+  kv.expire('username', 60);
+
+  // Check the time-to-live of key 'username'
+  kv.ttl('username'); // Returns 60
   ```
 </details>
 

@@ -229,7 +229,11 @@ class kvjs {
      * Set a key's time to live in seconds.
      * @param {*} key - The key to set the expiry time for.
      * @param {number} seconds - The number of seconds until the key should expire.
-     * @param {string} option - (Optional) The option for the expiry behavior. Can be 'NX' (expire only if key does not exist), 'XX' (expire only if key exists), 'GT' (expire only if key's expiry time is greater than the specified time), or 'LT' (expire only if key's expiry time is less than the specified time).
+     * @param {string} option - (Optional) The option for the expiry behavior. 
+     *                          Can be 'NX' (expire only if key does not exist), 
+     *                          'XX' (expire only if key exists), 
+     *                          'GT' (expire only if key's expiry time is greater than the specified time), 
+     *                          or 'LT' (expire only if key's expiry time is less than the specified time).
      * @returns {number} - 1 if the key's expiry time was set, 0 otherwise.
      */
     expire(key, seconds, option = '') {
