@@ -1,4 +1,4 @@
-<h3 align="center">KV.JS</h3>
+<h3 align="center"><img width="300" alt="KV.JS logo" src="https://raw.githubusercontent.com/HeyPuter/kv.js/main/logo.png"></h3>
 <p align="center">Advanced in-memory caching module for JavaScript. Inspired by Redis.</p>
 <hr>
 
