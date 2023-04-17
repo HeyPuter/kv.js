@@ -70,11 +70,7 @@ kv.del('foo');
 </details>
 
 <details>
-  <summary>
-    
-  ### `get`
-   
-  </summary>
+  <summary><h3><code>get</code></h3></summary>
   
 ```javascript
 // Example 1: Get the value of an existing key
