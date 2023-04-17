@@ -89,30 +89,7 @@ kv.del('foo');
 </details>
 
 <details>
-  <summary><strong><code>get</code></strong></summary>
-  
-  ```javascript
-  // Example 1: Get the value of an existing key
-  kv.get('username'); // Returns the value associated with the key 'username'
-
-  // Example 2: Get the value of a non-existent key
-  kv.get('nonexistent'); // Returns null
-
-  // Example 3: Get the value of an expired key (assuming 'expiredKey' was set with an expiration)
-  kv.get('expiredKey'); // Returns null
-
-  // Example 4: Get the value of a key after updating its value
-  kv.set('color', 'red'); // Sets the key 'color' to the value 'red'
-  kv.get('color'); // Returns 'red'
-
-  // Example 5: Get the value of a key after deleting it (assuming 'deletedKey' was previously set)
-  kv.delete('deletedKey'); // Deletes the key 'deletedKey'
-  kv.get('deletedKey'); // Returns null
-  ```
-</details>
-
-<details>
-  <summary><strong><code>get</code></strong></summary>
+  <summary><strong><code>del</code></strong></summary>
 
   ```javascript
   // Delete a single key ("key1"), returns 1 if the key was deleted, 0 if it did not exist or has expired.
@@ -133,7 +110,7 @@ kv.del('foo');
 </details>
 
 <details>
-  <summary><strong><code>get</code></strong></summary>
+  <summary><strong><code>exists</code></strong></summary>
 
   ```javascript
   // Check if a single key ("key1") exists, returns 1 if the key exists and is not expired, 0 otherwise.
