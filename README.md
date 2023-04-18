@@ -1,8 +1,9 @@
 <h3 align="center"><img width="300" alt="KV.JS logo" src="https://raw.githubusercontent.com/HeyPuter/kv.js/main/logo.png"></h3>
-<p align="center">Advanced in-memory caching module for JavaScript. Inspired by Redis.</p>
+<h3 align="center">Advanced in-memory caching module for JavaScript.</h3>
+<h4 align="center">For when you need caching but running Redis or Memcached would be an overkill.</h4>
 <hr>
 
-KV.JS is a fast, in-memory data store written in pure JavaScript, heavily inspired by Redis. It is capable of handling multiple data types, including strings, lists, sets, sorted sets, hashes, and geospatial indexes. Additionally, **with more than 140 functions**, KV.JS supports a vast variety of operations, ranging from `SET`, `GET`, `EXPIRE`, `DEL` to `INCR`, `DECR`, `LPUSH`, `RPUSH`, `SADD`, `SREM`, `HSET`, `HGET`, and many many more.
+KV.JS is a fast, in-memory data store written in pure JavaScript, heavily inspired by Redis and Memcached. It is capable of handling multiple data types, including strings, lists, sets, sorted sets, hashes, and geospatial indexes. Additionally, **with more than 140 functions**, KV.JS supports a vast variety of operations, ranging from `SET`, `GET`, `EXPIRE`, `DEL` to `INCR`, `DECR`, `LPUSH`, `RPUSH`, `SADD`, `SREM`, `HSET`, `HGET`, and many many more.
 
 ## Installation
 ```bash
