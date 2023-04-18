@@ -230,8 +230,8 @@ class kvjs {
      * @param {*} key - The key to set the expiry time for.
      * @param {number} seconds - The number of seconds until the key should expire.
      * @param {string} option - (Optional) The option for the expiry behavior. 
-     *                          Can be 'NX' (expire only if key does not exist), 
-     *                          'XX' (expire only if key exists), 
+     *                          Can be 'NX' (set expire only if key has no expiry time), 
+     *                          'XX' (expire only if key has an expiry time), 
      *                          'GT' (expire only if key's expiry time is greater than the specified time), 
      *                          or 'LT' (expire only if key's expiry time is less than the specified time).
      * @returns {number} - 1 if the key's expiry time was set, 0 otherwise.
@@ -348,8 +348,8 @@ class kvjs {
      * @param {*} key - The key to set the TTL for.
      * @param {number} timestampSeconds - The UNIX timestamp (in seconds) at which the key should expire.
      * @param {string} [option] - An optional argument specifying when the expiration should be set:
-     *                            - 'NX' if the key does not exist yet
-     *                            - 'XX' if the key already exists
+     *                            - 'NX' if the key does not have an expiration time
+     *                            - 'XX' if the key already has an expiration time
      *                            - 'GT' if the expiration should only be set if it is greater than the current TTL
      *                            - 'LT' if the expiration should only be set if it is less than the current TTL
      * @returns {number} - 1 if the TTL was set, 0 if the key does not exist or the TTL was not set.
@@ -393,8 +393,8 @@ class kvjs {
      * @param {*} key - The key to set the expiration for.
      * @param {number} ttlMillis - The time-to-live for the key, in milliseconds.
      * @param {string} [option] - An optional argument specifying when the expiration should be set:
-     *                            - 'NX' if the key does not exist yet
-     *                            - 'XX' if the key already exists
+     *                            - 'NX' if the key does not have an expiration time
+     *                            - 'XX' if the key already has an expiration time
      *                            - 'GT' if the expiration should only be set if it is greater than the current TTL
      *                            - 'LT' if the expiration should only be set if it is less than the current TTL
      * @returns {number} - 1 if the timeout was set, 0 otherwise.

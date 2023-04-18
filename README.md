@@ -116,10 +116,10 @@ kv.expire('username', 60);
   // Set a key's time to live in seconds without any option
   kv.expire('username', 60);
 
-  // Set a key's time to live in seconds only if the key does not exist
+  // Set a key's time to live in seconds only if the key does not have an expiry time
   kv.expire('username', 120, 'NX');
 
-  // Set a key's time to live in seconds only if the key exists
+  // Set a key's time to live in seconds only if the key already has an expiry time
   kv.expire('username', 180, 'XX');
 
   // Set a key's time to live in seconds only if the key's expiry time is greater than the specified time
@@ -137,10 +137,10 @@ kv.expire('username', 60);
   // Set the TTL for key "user1" to expire in 30 seconds.
   kv.expireat("user1", Math.floor(Date.now() / 1000) + 30);
 
-  // Set the TTL for key "user2" to expire at a specific UNIX timestamp (e.g. 1700000000), only if the key does not exist yet.
+  // Set the TTL for key "user2" to expire at a specific UNIX timestamp (e.g. 1700000000), only if the key does not already have an expiry time.
   kv.expireat("user2", 1700000000, "NX");
 
-  // Set the TTL for key "user3" to expire in 45 seconds, only if the key already exists.
+  // Set the TTL for key "user3" to expire in 45 seconds, only if the key already has an expiry time.
   kv.expireat("user3", Math.floor(Date.now() / 1000) + 45, "XX");
 
   // Set the TTL for key "user4" to expire in 60 seconds, only if the new TTL is greater than the current TTL.
@@ -149,10 +149,10 @@ kv.expire('username', 60);
   // Set the TTL for key "user5" to expire in 15 seconds, only if the new TTL is less than the current TTL.
   kv.expireat("user5", Math.floor(Date.now() / 1000) + 15, "LT");
 
-  // Set the TTL for key "user6" to expire at a specific UNIX timestamp (e.g. 1705000000), only if the key already exists.
+  // Set the TTL for key "user6" to expire at a specific UNIX timestamp (e.g. 1705000000), only if the key already have an expiry time.
   kv.expireat("user6", 1705000000, "XX");
 
-  // Set the TTL for key "user7" to expire in 90 seconds, only if the key does not exist yet.
+  // Set the TTL for key "user7" to expire in 90 seconds, only if the key does not already have an expiry time.
   kv.expireat("user7", Math.floor(Date.now() / 1000) + 90, "NX");
 
   // Set the TTL for key "user8" to expire at a specific UNIX timestamp (e.g. 1710000000), only if the new TTL is greater than the current TTL.
