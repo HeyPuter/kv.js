@@ -108,7 +108,7 @@ class kvjs {
         if (isExpired) {
             return null;
         }
-        return this.store.get(key) || null;
+        return this.store.get(key) ?? null;
     }
 
     /**
