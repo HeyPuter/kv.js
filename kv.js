@@ -1517,7 +1517,7 @@ class kvjs {
      * @returns {Array|null} - An array containing the key and the popped element, or null if no element is available or the timeout expires.
      */
     blpop(timeout, ...keys) {
-        return this.blmpop(1, timeout, ...keys)[0] || null;
+        return this.blmpop(1, timeout, ...keys)[0];
     }
 
     /**
@@ -1555,7 +1555,7 @@ class kvjs {
      * @returns {number|null} - The expire time in seconds, or null if the key has no expire time.
      */
     expiretime(key) {
-        return this.expireTimes.get(key) || null;
+        return this.expireTimes.get(key);
     }
 
     /**
@@ -1920,7 +1920,7 @@ class kvjs {
      */
     zmscore(key, ...members) {
         const sortedSet = this.store.get(key) || new Map();
-        return members.map(member => sortedSet.get(member) || null);
+        return members.map(member => sortedSet.get(member));
     }
 
     /**
@@ -2334,7 +2334,7 @@ class kvjs {
             return null;
         }
 
-        return sortedSet.get(member) || null;
+        return sortedSet.get(member);
     }
 
     /**
@@ -2670,7 +2670,7 @@ class kvjs {
      */
     hget(key, field) {
         const hashMap = this.store.get(key);
-        return hashMap ? hashMap.get(field) || null : null;
+        return hashMap ? hashMap.get(field) : undefined;
     }
 
     /**
@@ -2758,7 +2758,7 @@ class kvjs {
      */
     hmget(key, ...fields) {
         const hashMap = this.store.get(key) || new Map();
-        return fields.map(field => hashMap.get(field) || null);
+        return fields.map(field => hashMap.get(field));
     }
 
     /**
