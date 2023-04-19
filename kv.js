@@ -15,53 +15,42 @@ class kvjs {
      * @returns {boolean|null} - true if the operation was successful, or the existing value if the GET option is specified and the key already exists.
      */
     set(key, value, options = []) {
-        let nx = false;
-        let xx = false;
-        let get = false;
-        let ex = null;
-        let px = null;
-        let exat = null;
-        let pxat = null;
-        let keepttl = false;
+        const optionsArg = options;
+        options = {};
 
-        // Parse the options array
-        for (const opt of options) {
-            switch (opt.toUpperCase()) {
-                case 'NX':
-                    nx = true;
-                    break;
-                case 'XX':
-                    xx = true;
-                    break;
-                case 'GET':
-                    get = true;
-                    break;
-                case 'EX':
-                    ex = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'PX':
-                    px = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'EXAT':
-                    exat = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'PXAT':
-                    pxat = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'KEEPTTL':
-                    keepttl = true;
-                    break;
-                default:
-                    throw new Error(`ERR syntax error: "${opt}"`);
+        const OptionTypeInt = i => {
+            options[optionsArg[i]] = Number.parseInt(optionsArg[i+1], 10);
+            return 1;
+        };
+        const OptionTypeFlag = i => {
+            options[optionsArg[i]] = true;
+            return 0;
+        };
+
+        const optionTypes = {};
+        ['NX','XX','GET','KEEPTTL'].forEach(optionKey => {
+            optionTypes[optionKey] = OptionTypeFlag;
+        });
+        ['EX','PX','EXAT','PXAT'].forEach(optionKey => {
+            optionTypes[optionKey] = OptionTypeInt;
+        });
+
+        for ( let i = 0 ; i < options.length ; i++ ) {
+            const optionKey = options[i]?.toUpperCase?.();
+            const optionType = optionTypes[optionKey];
+            if ( ! optionType ) {
+                throw new Error(`ERR syntax error: "${opt}"`);
             }
+            const nArgsConsumed = optionType(i);
+            i += nArgsConsumed;
         }
 
         // Check if the key already exists
         const exists = this.store.has(key);
-        if (xx && !exists) {
+        if (options.xx && !exists) {
             return null;
         }
-        if (nx && exists) {
+        if (options.nx && exists) {
             return null;
         }
 
@@ -75,7 +64,8 @@ class kvjs {
         this.store.set(key, value);
 
         // Handle expiration options
-        if (ex !== null || px !== null || exat !== null || pxat !== null || keepttl) {
+        
+        if (['EX','PX','EXAT','PXAT'].some(k => options[k] !== null) || options.keepttl) {
             let expireTime = null;
             if (ex !== null) {
                 expireTime = Date.now() + ex * 1000;

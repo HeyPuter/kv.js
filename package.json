@@ -19,5 +19,8 @@
   "author": "Nariman Jelveh",
   "dependencies": {
     "glob": "^10.1.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
   }
 }
