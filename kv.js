@@ -1,4 +1,5 @@
 const glob = require('glob');
+const { Option, OptionTypeFlag, OptionTypeInt } = require('./Option');
 
 class kvjs {
     constructor(cleanupIntervalMs = 1000) {
@@ -15,42 +16,39 @@ class kvjs {
      * @returns {boolean|null} - true if the operation was successful, or the existing value if the GET option is specified and the key already exists.
      */
     set(key, value, options = []) {
+        let get = false;
+
         const optionsArg = options;
         options = {};
 
-        const OptionTypeInt = i => {
-            options[optionsArg[i]] = Number.parseInt(optionsArg[i+1], 10);
-            return 1;
-        };
-        const OptionTypeFlag = i => {
-            options[optionsArg[i]] = true;
-            return 0;
-        };
-
-        const optionTypes = {};
+        const recognizedOptions = {};
         ['NX','XX','GET','KEEPTTL'].forEach(optionKey => {
-            optionTypes[optionKey] = OptionTypeFlag;
+            recognizedOptions[optionKey] = new Option(optionKey, new OptionTypeFlag());
         });
         ['EX','PX','EXAT','PXAT'].forEach(optionKey => {
-            optionTypes[optionKey] = OptionTypeInt;
+            recognizedOptions[optionKey] = new Option(optionKey, new OptionTypeInt());
         });
 
-        for ( let i = 0 ; i < options.length ; i++ ) {
+        const getOptionType = k => {
             const optionKey = options[i]?.toUpperCase?.();
-            const optionType = optionTypes[optionKey];
-            if ( ! optionType ) {
+            return optionTypes[optionKey];
+        }
+
+        for ( let i = 0 ; i < optionsArg.length ; i++ ) {
+            const option = recognizedOptions[Option.normalizeKey(optionsArg[i])];
+            if ( ! option ) {
                 throw new Error(`ERR syntax error: "${opt}"`);
             }
-            const nArgsConsumed = optionType(i);
+            const nArgsConsumed = option.readOption(options, optionsArg, i);
             i += nArgsConsumed;
         }
 
         // Check if the key already exists
         const exists = this.store.has(key);
-        if (options.xx && !exists) {
+        if (options.XX && !exists) {
             return null;
         }
-        if (options.nx && exists) {
+        if (options.NX && exists) {
             return null;
         }
 
@@ -64,18 +62,22 @@ class kvjs {
         this.store.set(key, value);
 
         // Handle expiration options
+        const optionIsSet = k => {
+            const option = recognizedOptions[Option.normalizeKey(k)];
+            return option.isSet(options, k);
+        }
         
-        if (['EX','PX','EXAT','PXAT'].some(k => options[k] !== null) || options.keepttl) {
+        if (['EX','PX','EXAT','PXAT', 'KEEPTTL'].some(optionIsSet)) {
             let expireTime = null;
-            if (ex !== null) {
-                expireTime = Date.now() + ex * 1000;
-            } else if (px !== null) {
-                expireTime = Date.now() + px;
-            } else if (exat !== null) {
-                expireTime = exat * 1000;
-            } else if (pxat !== null) {
-                expireTime = pxat;
-            } else if (keepttl && exists) {
+            if (optionIsSet('EX')) {
+                expireTime = Date.now() + options.EX * 1000;
+            } else if (optionIsSet('PX')) {
+                expireTime = Date.now() + options.PX;
+            } else if (optionIsSet('EXAT')) {
+                expireTime = options.EXAT * 1000;
+            } else if (optionIsSet('PXAT')) {
+                expireTime = options.PXAT;
+            } else if (options.KEEPTTL && exists) {
                 expireTime = this.expireTimes.get(key);
             }
             if (expireTime !== null) {
