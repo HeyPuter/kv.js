@@ -348,36 +348,41 @@ class kvjs {
         if (typeof timestampSeconds !== 'number' || isNaN(timestampSeconds)) {
             throw new Error('ERR invalid expire time in SETEX');
         }
-
+    
+        // If the key does not exist, return 0
+        if (!this.store.has(key)) {
+            return 0;
+        }
+    
         const { NX = false, XX = false, GT = false, LT = false } = options;
-
+    
         const now = Date.now();
         const ttlMillis = (timestampSeconds * 1000) - now;
-
+    
         if (ttlMillis <= 0) {
             this.store.delete(key);
             this.expireTimes.delete(key);
             return 0;
         }
-
+    
         const existingTtl = this.pttl(key);
-
+        
         if (XX && existingTtl === -1) {
             // Do nothing, key does not exist or has no TTL
             return 0;
-        } else if (NX && existingTtl !== -2) {
+        } else if (NX && existingTtl !== -1) {
             // Do nothing, key exists and has a TTL set
             return 0;
-        } else if (GT && (existingTtl === -2 || existingTtl <= ttlMillis)) {
-            // Do nothing, key does not exist or existing TTL is already greater than new TTL
+        } else if (GT && (existingTtl !== -1 && ttlMillis <= existingTtl)) {
+            // Do nothing, key exists and new TTL is less than or equal to existing TTL
             return 0;
-        } else if (LT && (existingTtl !== -2 && existingTtl >= ttlMillis)) {
-            // Do nothing, key exists and existing TTL is already less than new TTL
+        } else if (LT && (existingTtl !== -1 && ttlMillis >= existingTtl)) {
+            // Do nothing, key exists and new TTL is greater than or equal to existing TTL
             return 0;
         }
-
+    
         return this.pexpire(key, ttlMillis);
-    }
+    }    
 
 
     /**
