@@ -1,6 +1,6 @@
 {
   "name": "@heyputer/kv.js",
-  "version": "0.0.17",
+  "version": "0.1.0",
   "license": "MIT",
   "description": "Fast, modern, in-memory key-value store for JavaScript. The perfect solution for caching in JavaScript.",
   "main": "kv.js",
@@ -9,7 +9,7 @@
     "url": "https://github.com/HeyPuter/kv.js.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --timeout 60000 ./test/*.test.js"
   },
   "keywords": [
     "cache",
@@ -18,6 +18,9 @@
   ],
   "author": "Nariman Jelveh",
   "dependencies": {
-    "glob": "^10.1.0"
+    "minimatch": "^9.0.0"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0"
   }
 }

@@ -1,7 +1,7 @@
-const glob = require('glob');
+const {minimatch} = require('minimatch');
 
 class kvjs {
-    constructor(cleanupIntervalMs = 1000) {
+    constructor(cleanupIntervalMs = 500) {
         this.store = new Map();
         this.expireTimes = new Map();
         this._initCleanupLoop(cleanupIntervalMs);
@@ -11,62 +11,49 @@ class kvjs {
      * Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
      * @param {*} key - The key to set.
      * @param {*} value - The value to set.
-     * @param {string[]} options - An array of optional arguments.
-     * @returns {boolean|null} - true if the operation was successful, or the existing value if the GET option is specified and the key already exists.
+     * @param {Object} [options] - An object with optional arguments.
+     *                              NX (boolean): Set the key only if it does not exist.
+     *                              XX (boolean): Set the key only if it already exists.
+     *                              GET (boolean): Return the old value of the key before setting the new value.
+     *                              EX (number|undefined): Set the key with an expiration time (in seconds).
+     *                              PX (number|undefined): Set the key with an expiration time (in milliseconds).
+     *                              EXAT (number|undefined): Set the key with an exact UNIX timestamp (in seconds) for expiration.
+     *                              PXAT (number|undefined): Set the key with an exact UNIX timestamp (in milliseconds) for expiration.
+     *                              KEEPTTL (boolean): Retain the key's existing TTL when setting a new value.
+     * @returns {boolean|undefined} - true if the operation was successful, or the existing value if the GET option is specified and the key already exists.
      */
-    set(key, value, options = []) {
-        let nx = false;
-        let xx = false;
-        let get = false;
-        let ex = null;
-        let px = null;
-        let exat = null;
-        let pxat = null;
-        let keepttl = false;
+    set(key, value, options = {}) {
+        const {
+            NX = false,
+            XX = false,
+            GET = false,
+            EX = undefined,
+            PX = undefined,
+            EXAT = undefined,
+            PXAT = undefined,
+            KEEPTTL = false,
+        } = options;
 
-        // Parse the options array
-        for (const opt of options) {
-            switch (opt.toUpperCase()) {
-                case 'NX':
-                    nx = true;
-                    break;
-                case 'XX':
-                    xx = true;
-                    break;
-                case 'GET':
-                    get = true;
-                    break;
-                case 'EX':
-                    ex = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'PX':
-                    px = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'EXAT':
-                    exat = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'PXAT':
-                    pxat = Number.parseInt(options[options.indexOf(opt) + 1], 10);
-                    break;
-                case 'KEEPTTL':
-                    keepttl = true;
-                    break;
-                default:
-                    throw new Error(`ERR syntax error: "${opt}"`);
-            }
-        }
+        const nx = NX;
+        const xx = XX;
+        const get = GET;
+        let ex = EX ? parseInt(EX, 10) : undefined;
+        let px = PX ? parseInt(PX, 10) : undefined;
+        let exat = EXAT ? parseInt(EXAT, 10) : undefined;
+        let pxat = PXAT ? parseInt(PXAT, 10) : undefined;
+        const keepttl = KEEPTTL;
 
         // Check if the key already exists
         const exists = this.store.has(key);
         if (xx && !exists) {
-            return null;
+            return undefined;
         }
         if (nx && exists) {
-            return null;
+            return undefined;
         }
 
         // Get the existing value if the GET option is specified
-        let oldValue = null;
+        let oldValue;
         if (get && exists) {
             oldValue = this.store.get(key);
         }
@@ -75,20 +62,20 @@ class kvjs {
         this.store.set(key, value);
 
         // Handle expiration options
-        if (ex !== null || px !== null || exat !== null || pxat !== null || keepttl) {
-            let expireTime = null;
-            if (ex !== null) {
+        if (ex !== undefined || px !== undefined || exat !== undefined || pxat !== undefined || keepttl) {
+            let expireTime = undefined;
+            if (ex !== undefined) {
                 expireTime = Date.now() + ex * 1000;
-            } else if (px !== null) {
+            } else if (px !== undefined) {
                 expireTime = Date.now() + px;
-            } else if (exat !== null) {
+            } else if (exat !== undefined) {
                 expireTime = exat * 1000;
-            } else if (pxat !== null) {
+            } else if (pxat !== undefined) {
                 expireTime = pxat;
             } else if (keepttl && exists) {
                 expireTime = this.expireTimes.get(key);
             }
-            if (expireTime !== null) {
+            if (expireTime !== undefined) {
                 this.expireTimes.set(key, expireTime);
             }
         } else {
@@ -97,18 +84,18 @@ class kvjs {
 
         return get ? oldValue : true;
     }
-
+    
     /**
      * Get the value of a key.
      * @param {*} key - The key to get.
-     * @returns {*} - The value of the key, or `null` if the key does not exist or has expired.
+     * @returns {*} - The value of the key, or `undefined` if the key does not exist or has expired.
      */
     get(key) {
         const isExpired = this._checkAndRemoveExpiredKey(key);
-        if (isExpired) {
-            return null;
-        }
-        return this.store.get(key) ?? null;
+        if (isExpired)
+            return undefined;
+
+        return this.store.get(key);
     }
 
     /**
@@ -229,28 +216,30 @@ class kvjs {
      * Set a key's time to live in seconds.
      * @param {*} key - The key to set the expiry time for.
      * @param {number} seconds - The number of seconds until the key should expire.
-     * @param {string} option - (Optional) The option for the expiry behavior. 
-     *                          Can be 'NX' (set expire only if key has no expiry time), 
-     *                          'XX' (expire only if key has an expiry time), 
-     *                          'GT' (expire only if key's expiry time is greater than the specified time), 
-     *                          or 'LT' (expire only if key's expiry time is less than the specified time).
+     * @param {Object} options - (Optional) An object containing the option for the expiry behavior.
+     *                          Can be { NX: true } (set expire only if key has no expiry time),
+     *                          { XX: true } (set expire only if key has an expiry time),
+     *                          { GT: true } (set expire only if key's expiry time is greater than the specified time),
+     *                          or { LT: true } (set expire only if key's expiry time is less than the specified time).
      * @returns {number} - 1 if the key's expiry time was set, 0 otherwise.
      */
-    expire(key, seconds, option = '') {
+    expire(key, seconds, options = {}) {
         if (!this.store.has(key)) {
             return 0;
         }
 
+        const { NX = false, XX = false, GT = false, LT = false } = options;
+
         const now = Date.now();
         const expireTime = this.expireTimes.get(key);
 
-        if (option === 'NX' && expireTime !== undefined) {
+        if (NX && expireTime !== undefined) {
             return 0;
-        } else if (option === 'XX' && expireTime === undefined) {
+        } else if (XX && expireTime === undefined) {
             return 0;
-        } else if (option === 'GT' && (expireTime === undefined || expireTime <= now + seconds * 1000)) {
+        } else if (GT && (expireTime === undefined || expireTime <= now + seconds * 1000)) {
             return 0;
-        } else if (option === 'LT' && (expireTime === undefined || expireTime >= now + seconds * 1000)) {
+        } else if (LT && (expireTime === undefined || expireTime >= now + seconds * 1000)) {
             return 0;
         }
 
@@ -265,21 +254,21 @@ class kvjs {
      */
     keys(pattern) {
         const keys = [];
-
+    
         for (const [key, value] of this.store.entries()) {
-            if (glob.sync(pattern, { nocase: true }).includes(key)) {
+            if (minimatch(key, pattern, { nocase: true })) {
                 const expireTime = this.expireTimes.get(key);
                 if (expireTime === undefined || expireTime > Date.now()) {
                     keys.push(key);
                 }
             }
         }
-
+    
         return keys;
     }
-
+    
     /**
-     * Returns an array of values stored at the given keys. If a key is not found, null is returned for that key.
+     * Returns an array of values stored at the given keys. If a key is not found, undefined is returned for that key.
      * @param {...string} keys - The keys to retrieve.
      * @returns {Array} - An array of values.
      */
@@ -332,13 +321,13 @@ class kvjs {
 
     /**
      * Return a random key from the cache.
-     * @returns {(string|null)} - A random key from the cache or null if the cache is empty.
+     * @returns {(string|undefined)} - A random key from the cache or undefined if the cache is empty.
      */
     randomkey() {
         const keys = Array.from(this.store.keys());
-        if (keys.length === 0) {
-            return null;
-        }
+        if (keys.length === 0)
+            return undefined;
+
         const randomIndex = Math.floor(Math.random() * keys.length);
         return keys[randomIndex];
     }
@@ -347,18 +336,20 @@ class kvjs {
      * Set a key's time-to-live in seconds.
      * @param {*} key - The key to set the TTL for.
      * @param {number} timestampSeconds - The UNIX timestamp (in seconds) at which the key should expire.
-     * @param {string} [option] - An optional argument specifying when the expiration should be set:
-     *                            - 'NX' if the key does not have an expiration time
-     *                            - 'XX' if the key already has an expiration time
-     *                            - 'GT' if the expiration should only be set if it is greater than the current TTL
-     *                            - 'LT' if the expiration should only be set if it is less than the current TTL
+     * @param {Object} [options] - An object with optional arguments specifying when the expiration should be set:
+     *                            - { NX: true } if the key does not have an expiration time
+     *                            - { XX: true } if the key already has an expiration time
+     *                            - { GT: true } if the expiration should only be set if it is greater than the current TTL
+     *                            - { LT: true } if the expiration should only be set if it is less than the current TTL
      * @returns {number} - 1 if the TTL was set, 0 if the key does not exist or the TTL was not set.
      * @throws {Error} - Throws an error if the timestampSeconds parameter is not a valid number.
      */
-    expireat(key, timestampSeconds, option = 'EX') {
+    expireat(key, timestampSeconds, options = {}) {
         if (typeof timestampSeconds !== 'number' || isNaN(timestampSeconds)) {
             throw new Error('ERR invalid expire time in SETEX');
         }
+
+        const { NX = false, XX = false, GT = false, LT = false } = options;
 
         const now = Date.now();
         const ttlMillis = (timestampSeconds * 1000) - now;
@@ -371,16 +362,16 @@ class kvjs {
 
         const existingTtl = this.pttl(key);
 
-        if (option === 'XX' && existingTtl === -1) {
+        if (XX && existingTtl === -1) {
             // Do nothing, key does not exist or has no TTL
             return 0;
-        } else if (option === 'NX' && existingTtl !== -2) {
+        } else if (NX && existingTtl !== -2) {
             // Do nothing, key exists and has a TTL set
             return 0;
-        } else if (option === 'GT' && (existingTtl === -2 || existingTtl <= ttlMillis)) {
+        } else if (GT && (existingTtl === -2 || existingTtl <= ttlMillis)) {
             // Do nothing, key does not exist or existing TTL is already greater than new TTL
             return 0;
-        } else if (option === 'LT' && (existingTtl !== -2 && existingTtl >= ttlMillis)) {
+        } else if (LT && (existingTtl !== -2 && existingTtl >= ttlMillis)) {
             // Do nothing, key exists and existing TTL is already less than new TTL
             return 0;
         }
@@ -388,25 +379,28 @@ class kvjs {
         return this.pexpire(key, ttlMillis);
     }
 
+
     /**
      * Set a timeout for the key, in milliseconds.
      * @param {*} key - The key to set the expiration for.
      * @param {number} ttlMillis - The time-to-live for the key, in milliseconds.
-     * @param {string} [option] - An optional argument specifying when the expiration should be set:
-     *                            - 'NX' if the key does not have an expiration time
-     *                            - 'XX' if the key already has an expiration time
-     *                            - 'GT' if the expiration should only be set if it is greater than the current TTL
-     *                            - 'LT' if the expiration should only be set if it is less than the current TTL
+     * @param {Object} [options] - An object with optional arguments specifying when the expiration should be set:
+     *                            - { NX: true } if the key does not have an expiration time
+     *                            - { XX: true } if the key already has an expiration time
+     *                            - { GT: true } if the expiration should only be set if it is greater than the current TTL
+     *                            - { LT: true } if the expiration should only be set if it is less than the current TTL
      * @returns {number} - 1 if the timeout was set, 0 otherwise.
      */
-    pexpire(key, ttlMillis, option) {
-        if (option === 'NX' && this.store.has(key) || option === 'XX' && !this.store.has(key)) {
+    pexpire(key, ttlMillis, options = {}) {
+        const { NX = false, XX = false, GT = false, LT = false } = options;
+
+        if (NX && this.store.has(key) || XX && !this.store.has(key)) {
             return 0;
         }
 
-        if (option === 'GT' || option === 'LT') {
+        if (GT || LT) {
             const existingTTL = this.pttl(key);
-            if (option === 'GT' && existingTTL >= ttlMillis || option === 'LT' && existingTTL <= ttlMillis) {
+            if (GT && existingTTL >= ttlMillis || LT && existingTTL <= ttlMillis) {
                 return 0;
             }
         }
@@ -494,9 +488,9 @@ class kvjs {
      */
     getrange(key, start, end) {
         const value = this.get(key);
-        if (value === null) {
+        if (typeof value !== 'string')
             return '';
-        }
+
         return value.slice(start, end + 1);
     }
 
@@ -505,7 +499,7 @@ class kvjs {
      * If the key does not exist, it is created and set to the specified value.
      * @param {*} key - The key to update.
      * @param {*} value - The new value to set.
-     * @returns {string|null} - The old value of the key, or null if the key did not exist.
+     * @returns {string|undefined} - The old value of the key, or undefined if the key did not exist.
      */
     getset(key, value) {
         const oldValue = this.get(key);
@@ -519,12 +513,12 @@ class kvjs {
      * @param {*} key - The key to set.
      * @param {*} value - The value to set for the key.
      * @param {number} ttl - The time-to-live for the key, in milliseconds.
-     * @returns {boolean} - true if the key was set successfully.
+     * @returns {boolean|undefined} - true if the key was set successfully.
      */
     setex(key, value, ttl) {
-        if (!this.store.has(key)) {
-            return null;
-        }
+        if (!this.store.has(key))
+            return undefined;
+
         this.set(key, value);
         this.expire(key, ttl);
         return true;
@@ -542,10 +536,19 @@ class kvjs {
      * @throws {Error} - If the offset is out of range or an error occurs while executing the command.
      */
     setrange(key, offset, value) {
+        if (typeof offset !== 'number' || offset < 0) {
+            throw new Error('Invalid offset value');
+        }
+    
+        if (typeof value !== 'string') {
+            throw new Error('Value must be a string');
+        }
+    
         let currentValue = this.get(key);
-        if (currentValue === null) {
+        if (currentValue === undefined || currentValue === undefined) {
             currentValue = '';
         }
+    
         const left = currentValue.slice(0, offset);
         const right = currentValue.slice(offset + value.length);
         const newValue = left + value + right;
@@ -560,7 +563,7 @@ class kvjs {
      */
     strlen(key) {
         const value = this.get(key);
-        return value === null ? 0 : value.length;
+        return value === undefined ? 0 : value.length;
     }
 
     /**
@@ -617,7 +620,7 @@ class kvjs {
      */
     append(key, value) {
         const currentValue = this.get(key);
-        const newValue = currentValue === null ? value : currentValue + value;
+        const newValue = currentValue === undefined ? value : currentValue + value;
         this.set(key, newValue);
         return newValue.length;
     }
@@ -630,7 +633,7 @@ class kvjs {
      */
     getbit(key, offset) {
         const value = this.get(key);
-        if (value === null || offset >= value.length * 8) {
+        if (value === undefined || offset >= value.length * 8) {
             return 0;
         }
         const byteIndex = Math.floor(offset / 8);
@@ -652,7 +655,7 @@ class kvjs {
         }
 
         let value = this.get(key);
-        if (value === null) {
+        if (value === undefined) {
             value = '';
         }
 
@@ -685,7 +688,7 @@ class kvjs {
      */
     copy(source, destination) {
         const value = this.get(source);
-        if (value === null) {
+        if (value === undefined) {
             return 0;
         }
         this.set(destination, value);
@@ -1156,7 +1159,7 @@ class kvjs {
      */
     rpoplpush(source, destination) {
         const element = this.rpop(source);
-        if (element === null) {
+        if (element === undefined) {
             return null;
         }
         this.lpush(destination, element);
@@ -1302,7 +1305,7 @@ class kvjs {
         const pushFn = destDirection === 'LEFT' ? 'lpush' : 'rpush';
 
         const element = this[popFn](source);
-        if (element === null) {
+        if (element === undefined) {
             return null;
         }
         this[pushFn](destination, element);
@@ -1323,7 +1326,7 @@ class kvjs {
 
         for (let i = 0; i < count; i++) {
             const value = this[popFn](key);
-            if (value === null) {
+            if (value === undefined) {
                 break;
             }
             results.push(value);
@@ -1355,14 +1358,14 @@ class kvjs {
     * @param {number} options.rank - The rank of the element to find (default is 0).
     * @param {number} options.start - The start index of the search (default is 0).
     * @param {number} options.stop - The stop index of the search (default is -1).
-    * @returns {number|null} - The position of the element, or null if not found.
+    * @returns {number|undefined} - The position of the element, or undefined if not found.
     */
     lpos(key, element, options = {}) {
         const { rank = 0, start = 0, stop = -1 } = options;
         const list = this.store.get(key);
 
         if (list === undefined || !Array.isArray(list)) {
-            return null;
+            return undefined;
         }
 
         let currentRank = 0;
@@ -1379,7 +1382,7 @@ class kvjs {
             }
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -1392,7 +1395,7 @@ class kvjs {
      */
     brpoplpush(source, destination, timeout) {
         const element = this.brpop(source, timeout);
-        if (element === null) {
+        if (element === undefined) {
             return null;
         }
         this.lpush(destination, element);
@@ -1476,7 +1479,7 @@ class kvjs {
         const pushFn = destDirection === 'LEFT' ? 'lpush' : 'rpush';
 
         const element = this[popFn]([source], timeout);
-        if (element === null) {
+        if (element === undefined) {
             return null;
         }
         this[pushFn](destination, element[1]);
@@ -1500,7 +1503,7 @@ class kvjs {
 
         for (let i = 0; i < count; i++) {
             const value = this[popFn](popArgs);
-            if (value === null) {
+            if (value === undefined) {
                 break;
             }
             results.push(value);
@@ -1552,7 +1555,7 @@ class kvjs {
      * Get the expire time of a key in seconds.
      *
      * @param {*} key - The key to get the expire time for.
-     * @returns {number|null} - The expire time in seconds, or null if the key has no expire time.
+     * @returns {number|undefined} - The expire time in seconds, or undefined if the key has no expire time.
      */
     expiretime(key) {
         return this.expireTimes.get(key);
@@ -1562,7 +1565,7 @@ class kvjs {
      * Get the expire time of a key in milliseconds.
      *
      * @param {*} key - The key to get the expire time for.
-     * @returns {number|null} - The expire time in milliseconds, or null if the key has no expire time.
+     * @returns {number|undefined} - The expire time in milliseconds, or undefined if the key has no expire time.
      */
     pexpiretime(key) {
         const expireTime = this.expireTimes.get(key);
@@ -2087,13 +2090,12 @@ class kvjs {
      * Determines the index of a member in the sorted set stored at the key.
      * @param {*} key - The key of the sorted set.
      * @param {string} member - The member to find the index of.
-     * @returns {(number|null)} - The index of the member, or null if not found.
+     * @returns {(number|undefined)} - The index of the member, or undefined if not found.
      */
     zrank(key, member) {
         const sortedSet = this.store.get(key);
-        if (!sortedSet) {
-            return null;
-        }
+        if (!sortedSet)
+            return undefined;
 
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => a[1] - b[1]);
         for (let i = 0; i < sortedMembers.length; i++) {
@@ -2102,7 +2104,7 @@ class kvjs {
             }
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -2278,12 +2280,12 @@ class kvjs {
      * Returns the rank of member in the sorted set stored at key, with the scores ordered from high to low.
      * @param {string} key - The key of the sorted set.
      * @param {*} member - The member whose rank to determine.
-     * @returns {number|null} - The rank of the member, or null if the member or sorted set does not exist.
+     * @returns {number|undefined} - The rank of the member, or undefined if the member or sorted set does not exist.
      */
     zrevrank(key, member) {
         const sortedSet = this.store.get(key);
         if (!sortedSet) {
-            return null;
+            return undefined;
         }
 
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => b[1] - a[1]);
@@ -2293,7 +2295,7 @@ class kvjs {
             }
         }
 
-        return null;
+        return undefined;
     }
 
     /**
@@ -2326,13 +2328,12 @@ class kvjs {
      * Returns the score of a member in the sorted set stored at key.
      * @param {string} key - The key of the sorted set.
      * @param {*} member - The member whose score to retrieve.
-     * @returns {number|null} - The score of the member, or null if the member or sorted set does not exist.
+     * @returns {number|undefined} - The score of the member, or undefined if the member or sorted set does not exist.
      */
     zscore(key, member) {
         const sortedSet = this.store.get(key);
-        if (!sortedSet) {
-            return null;
-        }
+        if (!sortedSet)
+            return undefined;
 
         return sortedSet.get(member);
     }
@@ -2401,20 +2402,18 @@ class kvjs {
      * @param {string} member1 - The first member in the sorted set.
      * @param {string} member2 - The second member in the sorted set.
      * @param {string} [unit='m'] - The unit of the returned distance (m, km, mi, ft).
-     * @returns {number|null} - The distance between the two members or null if not found.
+     * @returns {number|undefined} - The distance between the two members or undefined if not found.
      */
     geodist(key, member1, member2, unit = 'm') {
         const sortedSet = this.store.get(key);
-        if (!sortedSet) {
-            return null;
-        }
+        if (!sortedSet)
+            return undefined;
 
         const pos1 = sortedSet.get(member1);
         const pos2 = sortedSet.get(member2);
 
-        if (!pos1 || !pos2) {
-            return null;
-        }
+        if (!pos1 || !pos2)
+            return undefined;
 
         const distance = this._haversineDistance(pos1.latitude, pos1.longitude, pos2.latitude, pos2.longitude);
 
@@ -2502,11 +2501,11 @@ class kvjs {
      * @param {string} key - The key of the geospatial index.
      * @param {*} member - The member around which to search.
      * @param {number} radius - The radius to search within.
-     * @returns {Array|null} - An array of members within the specified radius or null if the member is not found.
+     * @returns {Array|undefined} - An array of members within the specified radius or undefined if the member is not found.
      */
     georadiusbymember(key, member, radius) {
         const coord = this.geopos(key, member);
-        if (!coord) return null;
+        if (!coord) return undefined;
         return this.georadius(coord[0], coord[1], radius, key);
     }
 
@@ -2515,11 +2514,11 @@ class kvjs {
      * @param {string} key - The key of the geospatial index.
      * @param {*} member - The member around which to search.
      * @param {number} radius - The radius to search within.
-     * @returns {Array|null} - An array of members within the specified radius or null if the member is not found.
+     * @returns {Array|undefined} - An array of members within the specified radius or undefined if the member is not found.
      */
     georadiusbymember_ro(key, member, radius) {
         const coord = this.geopos(key, member);
-        if (!coord) return null;
+        if (!coord) return undefined;
         return this.georadius(coord[0], coord[1], radius, key, true);
     }
 
@@ -2666,7 +2665,7 @@ class kvjs {
      *
      * @param {*} key - The key where the hash is stored.
      * @param {string} field - The field to get the value for.
-     * @returns {*} - The value of the field, or null if the field does not exist.
+     * @returns {*} - The value of the field, or undefined if the field does not exist.
      */
     hget(key, field) {
         const hashMap = this.store.get(key);
@@ -3011,13 +3010,13 @@ class kvjs {
     flushall() {
         // Clear all keys and associated values from the store
         this.store.clear();
-    
+
         // Clear all expiration times from the expirations map
         this.expireTimes.clear();
-    
+
         // Return true to indicate that the function was successful
         return true;
-    }    
+    }
 }
 
 module.exports = kvjs;
