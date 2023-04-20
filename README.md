@@ -118,16 +118,16 @@ kv.expire('username', 60);
   kv.expire('username', 60);
 
   // Set a key's time to live in seconds only if the key does not have an expiry time
-  kv.expire('username', 120, 'NX');
+  kv.expire('username', 120, {NX: true});
 
   // Set a key's time to live in seconds only if the key already has an expiry time
-  kv.expire('username', 180, 'XX');
+  kv.expire('username', 180, {XX: true});
 
   // Set a key's time to live in seconds only if the key's expiry time is greater than the specified time
-  kv.expire('username', 240, 'GT');
+  kv.expire('username', 240, {GT: true});
 
   // Set a key's time to live in seconds only if the key's expiry time is less than the specified time
-  kv.expire('username', 300, 'LT');
+  kv.expire('username', 300, {LT: true});
   ```
 </details>
 
@@ -139,28 +139,28 @@ kv.expire('username', 60);
   kv.expireat("user1", Math.floor(Date.now() / 1000) + 30);
 
   // Set the TTL for key "user2" to expire at a specific UNIX timestamp (e.g. 1700000000), only if the key does not already have an expiry time.
-  kv.expireat("user2", 1700000000, "NX");
+  kv.expireat("user2", 1700000000, {NX: true});
 
   // Set the TTL for key "user3" to expire in 45 seconds, only if the key already has an expiry time.
-  kv.expireat("user3", Math.floor(Date.now() / 1000) + 45, "XX");
+  kv.expireat("user3", Math.floor(Date.now() / 1000) + 45, {XX: true});
 
   // Set the TTL for key "user4" to expire in 60 seconds, only if the new TTL is greater than the current TTL.
-  kv.expireat("user4", Math.floor(Date.now() / 1000) + 60, "GT");
+  kv.expireat("user4", Math.floor(Date.now() / 1000) + 60, {GT: true});
 
   // Set the TTL for key "user5" to expire in 15 seconds, only if the new TTL is less than the current TTL.
-  kv.expireat("user5", Math.floor(Date.now() / 1000) + 15, "LT");
+  kv.expireat("user5", Math.floor(Date.now() / 1000) + 15, {LT: true});
 
   // Set the TTL for key "user6" to expire at a specific UNIX timestamp (e.g. 1705000000), only if the key already have an expiry time.
-  kv.expireat("user6", 1705000000, "XX");
+  kv.expireat("user6", 1705000000, {XX: true});
 
   // Set the TTL for key "user7" to expire in 90 seconds, only if the key does not already have an expiry time.
-  kv.expireat("user7", Math.floor(Date.now() / 1000) + 90, "NX");
+  kv.expireat("user7", Math.floor(Date.now() / 1000) + 90, {NX: true});
 
   // Set the TTL for key "user8" to expire at a specific UNIX timestamp (e.g. 1710000000), only if the new TTL is greater than the current TTL.
-  kv.expireat("user8", 1710000000, "GT");
+  kv.expireat("user8", 1710000000, {GT: true});
 
   // Set the TTL for key "user9" to expire in 120 seconds, only if the new TTL is less than the current TTL.
-  kv.expireat("user9", Math.floor(Date.now() / 1000) + 120, "LT");
+  kv.expireat("user9", Math.floor(Date.now() / 1000) + 120, {LT: true});
 
   // Set the TTL for key "user10" to expire in 5 seconds.
   kv.expireat("user10", Math.floor(Date.now() / 1000) + 5);
@@ -371,31 +371,31 @@ kv.expire('username', 60);
   kv.set('username', 'john_doe'); // Output: true
 
   // Set a key-value pair only if the key does not already exist (NX option)
-  kv.set('username', 'jane_doe', ['NX']);
+  kv.set('username', 'jane_doe', {NX: true});
 
   // Set a key-value pair only if the key already exists (XX option)
-  kv.set('email', 'jane@example.com', ['XX']);
+  kv.set('email', 'jane@example.com', {XX: true});
 
   // Set a key-value pair with an expiration time in seconds (EX option)
-  kv.set('session_token', 'abc123', ['EX', 3600]);
+  kv.set('session_token', 'abc123', {EX: 3600});
 
   // Get the existing value and set a new value for a key (GET option)
-  kv.set('username', 'mary_smith', ['GET']);
+  kv.set('username', 'mary_smith', {GET: true});
 
   // Set a key-value pair with an expiration time in milliseconds (PX option)
-  kv.set('temp_data', '42', ['PX', 1000]);
+  kv.set('temp_data', '42', {PX: 1000});
 
   // Set a key-value pair with an expiration time at a specific Unix timestamp in seconds (EXAT option)
-  kv.set('event_data', 'event1', ['EXAT', 1677649420]);
+  kv.set('event_data', 'event1', {EXAT: 1677649420});
 
   // Set a key-value pair with an expiration time at a specific Unix timestamp in milliseconds (PXAT option)
-  kv.set('event_data2', 'event2', ['PXAT', 1677649420000]);
+  kv.set('event_data2', 'event2', {PXAT: 1677649420000});
 
   // Set a key-value pair and keep the original TTL if the key already exists (KEEPTTL option)
-  kv.set('username', 'alice_wonder', ['KEEPTTL']);
+  kv.set('username', 'alice_wonder', {KEEPTTL: true});
 
   // Set a key-value pair with multiple options (NX, EX, and GET options)
-  kv.set('new_user', 'carol_baker', ['NX', 'EX', 7200, 'GET']);
+  kv.set('new_user', 'carol_baker', {NX: true, EX: 7200, GET: true});
   ```
 </details>
 
