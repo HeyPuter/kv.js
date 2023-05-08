@@ -1,10 +1,17 @@
 const {minimatch} = require('minimatch');
 
 class kvjs {
-    constructor(cleanupIntervalMs = 500) {
+    constructor() {
+        // Initialize the store and expireTimes maps
         this.store = new Map();
         this.expireTimes = new Map();
-        this._initCleanupLoop(cleanupIntervalMs);
+
+        // Initialize the cleanup loop interval
+        this.cleanupInterval = undefined;
+
+        // Initialize cleanup loop that will regularly check for expired keys
+        // and remove them from the store. Default interval is 20 milliseconds.
+        this._initCleanupLoop(20);
     }
 
     /**
@@ -2901,7 +2908,13 @@ class kvjs {
      * @param {number} cleanupIntervalMs - The interval, in milliseconds, at which the cleanup loop should run.
      */
     _initCleanupLoop(cleanupIntervalMs) {
-        setInterval(() => {
+        // remove previous cleanup loop if it exists
+        if(this.cleanupLoop) {
+            clearInterval(this.cleanupLoop);
+        }
+
+        // create new cleanup loop
+        this.cleanupLoop = setInterval(() => {
             for (const key of this.expireTimes.keys()) {
                 this._checkAndRemoveExpiredKey(key);
             }
