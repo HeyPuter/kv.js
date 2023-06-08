@@ -9,7 +9,8 @@
     "url": "https://github.com/HeyPuter/kv.js.git"
   },
   "scripts": {
-    "test": "mocha --timeout 60000 ./test/*.test.js"
+    "test": "mocha --timeout 60000 ./test/*.test.js",
+    "types": "tsc kv.js --emitDeclarationOnly --allowJs --declaration --target es2015 --moduleResolution node --outDir ."
   },
   "keywords": [
     "cache",
@@ -21,6 +22,7 @@
     "minimatch": "^9.0.0"
   },
   "devDependencies": {
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.3"
   }
 }
