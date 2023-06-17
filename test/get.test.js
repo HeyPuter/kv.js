@@ -33,5 +33,41 @@ describe('kvjs', () => {
                 done();
             }, 100);
         });
+
+        it('should return undefined for keys that just expired', (done) => {
+            instance.set('key', 'value', { PX: 100 });
+            setTimeout(() => {
+                assert.strictEqual(instance.get('key'), undefined);
+                done();
+            }, 110);
+        });
+
+        it('should return the value for keys that are about to expire', (done) => {
+            instance.set('key', 'value', { PX: 100 });
+            setTimeout(() => {
+                assert.strictEqual(instance.get('key'), 'value');
+                done();
+            }, 90);
+        });
+
+        it('should handle expiration when reset with a new value', (done) => {
+            instance.set('key', 'value', { PX: 100 });
+            setTimeout(() => {
+                instance.set('key', 'new_value');
+                assert.strictEqual(instance.get('key'), 'new_value');
+                done();
+            }, 50);
+        });
+
+        it('should handle expiration when reset with a new value and new expiration', (done) => {
+            instance.set('key', 'value', { PX: 100 });
+            setTimeout(() => {
+                instance.set('key', 'new_value', { PX: 100 });
+                setTimeout(() => {
+                    assert.strictEqual(instance.get('key'), 'new_value');
+                    done();
+                }, 50);
+            }, 50);
+        });
     });
 });

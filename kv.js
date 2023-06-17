@@ -6,9 +6,6 @@ class kvjs {
         this.store = new Map();
         this.expireTimes = new Map();
 
-        // Initialize the cleanup loop interval
-        this.cleanupInterval = undefined;
-
         // Initialize cleanup loop that will regularly check for expired keys
         // and remove them from the store. Default interval is 20 milliseconds.
         this._initCleanupLoop(20);
