@@ -110,5 +110,24 @@ describe('kvjs', () => {
             // The key should not expire since there was no initial expiration set
         });
 
+        describe('scalability', function(){
+            this.timeout(0); // Disable Mocha timeout
+            it('should handle more than 16,777,215 keys', (done) => {
+    
+                const totalKeys = 16777300; // 16,777,300 keys
+                let setCount = 0;
+                for (let i = 0; i < totalKeys; i++) {
+                    const key = `key${i}`;
+                    const value = `value${i}`;
+                    instance.set(key, value);
+                    if (instance.get(key) === value) {
+                        setCount++;
+                    }
+                }
+    
+                assert.strictEqual(setCount, totalKeys, `Should have set and retrieved ${totalKeys} keys correctly`);
+                done();
+            });
+        });
     });
 });

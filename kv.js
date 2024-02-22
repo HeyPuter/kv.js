@@ -1,10 +1,11 @@
 const {minimatch} = require('minimatch');
+XMap = require('./XMap');
 
 class kvjs {
     constructor() {
         // Initialize the store and expireTimes maps
-        this.store = new Map();
-        this.expireTimes = new Map();
+        this.store = new XMap();
+        this.expireTimes = new XMap();
 
         // Initialize cleanup loop that will regularly check for expired keys
         // and remove them from the store. Default interval is 20 milliseconds.
@@ -1596,7 +1597,7 @@ class kvjs {
         }
 
         if (!this.store.has(key)) {
-            this.store.set(key, new Map());
+            this.store.set(key, new XMap());
         }
 
         const sortedSet = this.store.get(key);
@@ -1668,9 +1669,9 @@ class kvjs {
         const sortedSets = keys.map(key => {
             const isExpired = this._checkAndRemoveExpiredKey(key);
             if (isExpired) {
-                return new Map();
+                return new XMap();
             }
-            return this.store.get(key) || new Map();
+            return this.store.get(key) || new XMap();
         });
 
         const firstSet = new Set(sortedSets[0].keys());
@@ -1692,7 +1693,7 @@ class kvjs {
      */
     zdiffstore(destination, ...keys) {
         const diff = this.ZDIFF(...keys);
-        const resultMap = new Map();
+        const resultMap = new XMap();
 
         for (const member of diff) {
             const scores = keys.map(key => {
@@ -1796,7 +1797,7 @@ class kvjs {
      */
     zincrby(key, increment, member) {
         if (!this.store.has(key)) {
-            this.store.set(key, new Map());
+            this.store.set(key, new XMap());
         }
 
         const sortedSet = this.store.get(key);
@@ -1817,7 +1818,7 @@ class kvjs {
             return new Set();
         }
 
-        const sortedSets = keys.map(key => this.store.get(key) || new Map());
+        const sortedSets = keys.map(key => this.store.get(key) || new XMap());
         const firstSet = new Set(sortedSets[0].keys());
         for (let i = 1; i < sortedSets.length; i++) {
             const intersection = new Set();
@@ -1855,7 +1856,7 @@ class kvjs {
      */
     zinterstore(destination, ...keys) {
         const intersection = this.ZINTER(...keys);
-        const resultMap = new Map();
+        const resultMap = new XMap();
 
         for (const member of intersection) {
             const scores = keys.map(key => {
@@ -1881,7 +1882,7 @@ class kvjs {
      * @returns {number} - The number of members with scores between min and max.
      */
     zlexcount(key, min, max) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.keys()).sort();
         let count = 0;
 
@@ -1931,7 +1932,7 @@ class kvjs {
      * @returns {Array} - An array containing the scores of the specified members.
      */
     zmscore(key, ...members) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         return members.map(member => sortedSet.get(member));
     }
 
@@ -2016,7 +2017,7 @@ class kvjs {
      * @returns {Array} - An array containing the members and their scores within the specified range.
      */
     zrange(key, start, stop) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => a[1] - b[1]);
 
         if (start < 0) start = sortedMembers.length + start;
@@ -2034,7 +2035,7 @@ class kvjs {
      * @returns {string[]} - The filtered and sorted set members.
      */
     zrangebylex(key, min, max, options = {}) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.keys()).sort();
 
         let result = sortedMembers.filter(member => member >= min && member <= max);
@@ -2056,7 +2057,7 @@ class kvjs {
      * @returns {(string[]|Array[])} - The filtered and sorted set members, with or without scores based on options.
      */
     zrangebyscore(key, min, max, options = {}) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => a[1] - b[1]);
 
         let result = sortedMembers.filter(([, score]) => score >= min && score <= max);
@@ -2084,13 +2085,13 @@ class kvjs {
      * @returns {number} - The number of elements in the new sorted set.
      */
     zrangestore(destination, key, start, stop) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => a[1] - b[1]);
 
         if (start < 0) start = sortedMembers.length + start;
         if (stop < 0) stop = sortedMembers.length + stop;
 
-        const resultMap = new Map(sortedMembers.slice(start, stop + 1));
+        const resultMap = new XMap(sortedMembers.slice(start, stop + 1));
         this.store.set(destination, resultMap);
         return resultMap.size;
     }
@@ -2226,7 +2227,7 @@ class kvjs {
      * @returns {Array} - The specified range of elements in reverse order.
      */
     zrevrange(key, start, stop) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => b[1] - a[1]);
 
         if (start < 0) start = sortedMembers.length + start;
@@ -2244,7 +2245,7 @@ class kvjs {
      * @returns {Array} - The specified range of elements.
      */
     zrevrangebylex(key, max, min, options = {}) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.keys()).sort().reverse();
 
         let result = sortedMembers.filter(member => member >= min && member <= max);
@@ -2266,7 +2267,7 @@ class kvjs {
      * @returns {Array} - The specified range of elements in reverse order.
      */
     zrevrangebyscore(key, max, min, options = {}) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => b[1] - a[1]);
 
         let result = sortedMembers.filter(([, score]) => score >= min && score <= max);
@@ -2315,7 +2316,7 @@ class kvjs {
      * @returns {Array} - An array containing the next cursor and the result.
      */
     zscan(key, cursor, options = {}) {
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const sortedMembers = Array.from(sortedSet.entries()).sort((a, b) => a[1] - b[1]);
         const result = [];
 
@@ -2353,7 +2354,7 @@ class kvjs {
      * @returns {Array} - The union of the specified sorted sets, sorted by score.
      */
     zunion(keys) {
-        const unionMap = new Map();
+        const unionMap = new XMap();
 
         for (const key of keys) {
             const sortedSet = this.store.get(key);
@@ -2375,7 +2376,7 @@ class kvjs {
      */
     zunionstore(destination, keys) {
         const unionResult = this.zunion(keys);
-        const resultMap = new Map(unionResult);
+        const resultMap = new XMap(unionResult);
         this.store.set(destination, resultMap);
         return resultMap.size;
     }
@@ -2393,7 +2394,7 @@ class kvjs {
             throw new Error('Invalid longitude or latitude value');
         }
 
-        const sortedSet = this.store.get(key) || new Map();
+        const sortedSet = this.store.get(key) || new XMap();
         const existingMember = sortedSet.get(member);
 
         if (!existingMember) {
@@ -2640,7 +2641,7 @@ class kvjs {
      */
     hset(key, field, value) {
         if (!this.store.has(key)) {
-            this.store.set(key, new Map());
+            this.store.set(key, new XMap());
         }
         const hashMap = this.store.get(key);
         const isNewField = !hashMap.has(field);
@@ -2708,7 +2709,7 @@ class kvjs {
      * @returns {number} - The new value of the field after the increment.
      */
     hincrby(key, field, increment) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
         const currentValue = parseInt(hashMap.get(field) || 0, 10);
         const newValue = currentValue + increment;
 
@@ -2726,7 +2727,7 @@ class kvjs {
      * @returns {number} - The new value of the field after the increment.
      */
     hincrbyfloat(key, field, increment) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
         const currentValue = parseFloat(hashMap.get(field) || 0);
         const newValue = currentValue + increment;
 
@@ -2765,7 +2766,7 @@ class kvjs {
      * @returns {Array} - An array of field values.
      */
     hmget(key, ...fields) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
         return fields.map(field => hashMap.get(field));
     }
 
@@ -2777,7 +2778,7 @@ class kvjs {
      * @returns {string} - Returns "OK" on successful update.
      */
     hmset(key, ...fieldValuePairs) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
 
         for (let i = 0; i < fieldValuePairs.length; i += 2) {
             const field = fieldValuePairs[i];
@@ -2798,7 +2799,7 @@ class kvjs {
      * @returns {number} - Returns 1 if the field is newly created, 0 otherwise.
      */
     hsetnx(key, field, value) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
 
         if (hashMap.has(field)) {
             return 0;
@@ -2843,7 +2844,7 @@ class kvjs {
      * @returns {Array} - An array containing the next cursor and the filtered field-value pairs.
      */
     hscan(key, cursor, match = '*', count = 10) {
-        const hashMap = this.store.get(key) || new Map();
+        const hashMap = this.store.get(key) || new XMap();
         const filteredFields = Array.from(hashMap.keys()).filter(field => field.includes(match));
         const endIndex = Math.min(cursor + count, filteredFields.length);
         const nextCursor = endIndex === filteredFields.length ? 0 : endIndex;
