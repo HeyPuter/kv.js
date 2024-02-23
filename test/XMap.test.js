@@ -89,7 +89,7 @@ describe('XMap', function() {
         this.timeout(0); // Disable Mocha's timeout as this will take a long time.
 
         it('should handle more than 16,777,215 keys correctly', function() {
-            const limit = 16777216; // One more than the limit
+            const limit = 26777300; // One more than the limit
             const map = new XMap();
 
             // Inserting keys
