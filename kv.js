@@ -2924,8 +2924,6 @@ class kvjs {
                     }
                 }
             }, cleanupIntervalMs);
-        } else if (this.store.size === 0 && this.cleanupLoop) {
-            clearInterval(this.cleanupLoop);
         }
     }
 
