@@ -1,15 +1,22 @@
 const {minimatch} = require('minimatch');
 XMap = require('./XMap');
 
+// The cleanup loop runs as long as there's at least one key set, and will
+// regularly check for expired keys and remove them from the store.
+const CLEANUP_INTERVAL = 20;
+
 class kvjs {
     constructor() {
         // Initialize the store and expireTimes maps
         this.store = new XMap();
         this.expireTimes = new XMap();
 
-        // Initialize cleanup loop that will regularly check for expired keys
-        // and remove them from the store. Default interval is 20 milliseconds.
-        this._initCleanupLoop(20);
+        // wrap the set function to trigger the cleanup interval on each set
+        this.storeSet = (key, value) => {
+            this.store.set(key, value);
+            this._initCleanupLoop(CLEANUP_INTERVAL);
+        }
+
     }
 
     /**
@@ -64,7 +71,7 @@ class kvjs {
         }
 
         // Set the new value
-        this.store.set(key, value);
+        this.storeSet(key, value);
 
         // Handle expiration options
         if (ex !== undefined || px !== undefined || exat !== undefined || pxat !== undefined || keepttl) {
@@ -179,7 +186,7 @@ class kvjs {
         }
 
         const newValue = Number(value) + increment;
-        this.store.set(key, newValue.toString());
+        this.storeSet(key, newValue.toString());
         return newValue;
     }
 
@@ -213,7 +220,7 @@ class kvjs {
         }
 
         const newValue = Number(value) - decrement;
-        this.store.set(key, newValue.toString());
+        this.storeSet(key, newValue.toString());
         return newValue;
     }
 
@@ -311,7 +318,7 @@ class kvjs {
         }
         const value = this.store.get(oldKey);
         this.store.delete(oldKey);
-        this.store.set(newKey, value);
+        this.storeSet(newKey, value);
 
         // Update expiration times if necessary
         if (this.expireTimes.has(oldKey)) {
@@ -617,7 +624,7 @@ class kvjs {
         }
 
         const newValue = parseFloat(value) + increment;
-        this.store.set(key, newValue.toString());
+        this.storeSet(key, newValue.toString());
         return newValue;
     }
 
@@ -720,7 +727,7 @@ class kvjs {
         }
         const value = this.store.get(key);
         const expireTime = this.expireTimes.get(key);
-        this.store.set(newKey, value);
+        this.storeSet(newKey, value);
         this.store.delete(key);
         if (expireTime !== undefined) {
             this.expireTimes.set(newKey, expireTime);
@@ -750,7 +757,7 @@ class kvjs {
      */
     sadd(key, ...members) {
         if (!this.store.has(key)) {
-            this.store.set(key, new Set());
+            this.storeSet(key, new Set());
         }
         const set = this.store.get(key);
         if (!(set instanceof Set)) {
@@ -818,7 +825,7 @@ class kvjs {
     sdiffstore(destination, key1, ...otherKeys) {
         const diff = this.sdiff(key1, ...otherKeys);
         const resultSet = new Set(diff);
-        this.store.set(destination, resultSet);
+        this.storeSet(destination, resultSet);
         return resultSet.size;
     }
 
@@ -873,7 +880,7 @@ class kvjs {
     sinterstore(destination, ...keys) {
         const intersection = this.sinter(...keys);
         const resultSet = new Set(intersection);
-        this.store.set(destination, resultSet);
+        this.storeSet(destination, resultSet);
         return resultSet.size;
     }
 
@@ -947,7 +954,7 @@ class kvjs {
 
         srcSet.delete(member);
         destSet.add(member);
-        this.store.set(destination, destSet);
+        this.storeSet(destination, destSet);
 
         return 1;
     }
@@ -1096,7 +1103,7 @@ class kvjs {
                 resultSet.add(member);
             }
         }
-        this.store.set(destination, resultSet);
+        this.storeSet(destination, resultSet);
         return resultSet.size;
     }
 
@@ -1144,7 +1151,7 @@ class kvjs {
         const newStop = stop >= 0 ? stop : Math.max(length + stop, -1);
         const newList = list.slice(newStart, newStop + 1);
 
-        this.store.set(key, newList);
+        this.storeSet(key, newList);
         return true;
     }
 
@@ -1186,7 +1193,7 @@ class kvjs {
         let list = this.store.get(key);
         if (list === undefined) {
             list = [];
-            this.store.set(key, list);
+            this.storeSet(key, list);
         } else if (!Array.isArray(list)) {
             throw new Error('ERR Operation against a key holding the wrong kind of value');
         }
@@ -1219,7 +1226,7 @@ class kvjs {
         let list = this.store.get(key);
         if (list === undefined) {
             list = [];
-            this.store.set(key, list);
+            this.storeSet(key, list);
         } else if (!Array.isArray(list)) {
             throw new Error('ERR Operation against a key holding the wrong kind of value');
         }
@@ -1295,7 +1302,7 @@ class kvjs {
             }
         } else {
             removed = list.filter(item => item === value).length;
-            this.store.set(key, list.filter(item => item !== value));
+            this.storeSet(key, list.filter(item => item !== value));
         }
 
         return removed;
@@ -1597,7 +1604,7 @@ class kvjs {
         }
 
         if (!this.store.has(key)) {
-            this.store.set(key, new XMap());
+            this.storeSet(key, new XMap());
         }
 
         const sortedSet = this.store.get(key);
@@ -1706,7 +1713,7 @@ class kvjs {
             }
         }
 
-        this.store.set(destination, resultMap);
+        this.storeSet(destination, resultMap);
         return resultMap.size;
     }
 
@@ -1797,7 +1804,7 @@ class kvjs {
      */
     zincrby(key, increment, member) {
         if (!this.store.has(key)) {
-            this.store.set(key, new XMap());
+            this.storeSet(key, new XMap());
         }
 
         const sortedSet = this.store.get(key);
@@ -1869,7 +1876,7 @@ class kvjs {
             }
         }
 
-        this.store.set(destination, resultMap);
+        this.storeSet(destination, resultMap);
         return resultMap.size;
     }
 
@@ -2092,7 +2099,7 @@ class kvjs {
         if (stop < 0) stop = sortedMembers.length + stop;
 
         const resultMap = new XMap(sortedMembers.slice(start, stop + 1));
-        this.store.set(destination, resultMap);
+        this.storeSet(destination, resultMap);
         return resultMap.size;
     }
 
@@ -2377,7 +2384,7 @@ class kvjs {
     zunionstore(destination, keys) {
         const unionResult = this.zunion(keys);
         const resultMap = new XMap(unionResult);
-        this.store.set(destination, resultMap);
+        this.storeSet(destination, resultMap);
         return resultMap.size;
     }
 
@@ -2400,7 +2407,7 @@ class kvjs {
         if (!existingMember) {
             const geoData = { longitude, latitude };
             sortedSet.set(member, geoData);
-            this.store.set(key, sortedSet);
+            this.storeSet(key, sortedSet);
             return 1;
         }
 
@@ -2641,7 +2648,7 @@ class kvjs {
      */
     hset(key, field, value) {
         if (!this.store.has(key)) {
-            this.store.set(key, new XMap());
+            this.storeSet(key, new XMap());
         }
         const hashMap = this.store.get(key);
         const isNewField = !hashMap.has(field);
@@ -2714,7 +2721,7 @@ class kvjs {
         const newValue = currentValue + increment;
 
         hashMap.set(field, newValue.toString());
-        this.store.set(key, hashMap);
+        this.storeSet(key, hashMap);
         return newValue;
     }
 
@@ -2732,7 +2739,7 @@ class kvjs {
         const newValue = currentValue + increment;
 
         hashMap.set(field, newValue.toString());
-        this.store.set(key, hashMap);
+        this.storeSet(key, hashMap);
         return newValue;
     }
 
@@ -2786,7 +2793,7 @@ class kvjs {
             hashMap.set(field, value);
         }
 
-        this.store.set(key, hashMap);
+        this.storeSet(key, hashMap);
         return true;
     }
 
@@ -2806,7 +2813,7 @@ class kvjs {
         }
 
         hashMap.set(field, value);
-        this.store.set(key, hashMap);
+        this.storeSet(key, hashMap);
         return 1;
     }
 
@@ -2906,17 +2913,18 @@ class kvjs {
      * @param {number} cleanupIntervalMs - The interval, in milliseconds, at which the cleanup loop should run.
      */
     _initCleanupLoop(cleanupIntervalMs) {
-        // remove previous cleanup loop if it exists
-        if(this.cleanupLoop) {
-            clearInterval(this.cleanupLoop);
-        }
-
         // create new cleanup loop
-        this.cleanupLoop = setInterval(() => {
-            for (const key of this.expireTimes.keys()) {
-                this._checkAndRemoveExpiredKey(key);
-            }
-        }, cleanupIntervalMs);
+        if (this.store.size === 1) {
+            this.cleanupLoop = setInterval(() => {
+                if (this.store.size === 0 && this.cleanupLoop) {
+                    clearInterval(this.cleanupLoop);
+                } else {
+                    for (const key of this.expireTimes.keys()) {
+                        this._checkAndRemoveExpiredKey(key);
+                    }
+                }
+            }, cleanupIntervalMs);
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ export = kvjs;
 declare class kvjs {
     store: Map<any, any>;
     expireTimes: Map<any, any>;
+    storeSet: (key: any, value: any) => void;
     /**
      * Set the string value of a key with optional NX/XX/GET/EX/PX/EXAT/PXAT/KEEPTTL, GET, and expiration options.
      * @param {*} key - The key to set.
