@@ -2913,13 +2913,8 @@ class kvjs {
      * @param {number} cleanupIntervalMs - The interval, in milliseconds, at which the cleanup loop should run.
      */
     _initCleanupLoop(cleanupIntervalMs) {
-        // remove previous cleanup loop if it exists
-        if (this.cleanupLoop) {
-            clearInterval(this.cleanupLoop);
-        }
-
         // create new cleanup loop
-        if (this.store.size > 0) {
+        if (this.store.size === 1) {
             this.cleanupLoop = setInterval(() => {
                 if (this.store.size === 0 && this.cleanupLoop) {
                     clearInterval(this.cleanupLoop);
