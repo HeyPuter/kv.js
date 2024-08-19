@@ -13,8 +13,8 @@ class kvjs {
 
         // wrap the set function to trigger the cleanup interval on each set
         this.storeSet = (key, value) => {
-            this._initCleanupLoop(CLEANUP_INTERVAL);
             this.store.set(key, value);
+            this._initCleanupLoop(CLEANUP_INTERVAL);
         }
 
     }
@@ -2924,6 +2924,8 @@ class kvjs {
                     }
                 }
             }, cleanupIntervalMs);
+        } else if (this.store.size === 0 && this.cleanupLoop) {
+            clearInterval(this.cleanupLoop);
         }
     }
 
