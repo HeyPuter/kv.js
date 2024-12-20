@@ -2924,6 +2924,7 @@ class kvjs {
                     }
                 }
             }, cleanupIntervalMs);
+            this.cleanupLoop.unref();
         }
     }
 
