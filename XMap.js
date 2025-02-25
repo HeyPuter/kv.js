@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Class representing an extended version of the Map class that supports storing more than
  * 16,777,215 keys by using multiple Map instances internally. This class provides a unified

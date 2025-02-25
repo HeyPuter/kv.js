@@ -1,5 +1,7 @@
+'use strict';
+
 const {minimatch} = require('minimatch');
-XMap = require('./XMap');
+const XMap = require('./XMap.js');
 
 // The cleanup loop runs as long as there's at least one key set, and will
 // regularly check for expired keys and remove them from the store.
