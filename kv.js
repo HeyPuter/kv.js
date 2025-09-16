@@ -2926,7 +2926,12 @@ class kvjs {
                     }
                 }
             }, cleanupIntervalMs);
-            this.cleanupLoop.unref();
+            
+            // Only call unref() if it exists (Node.js environment)
+            // In browsers, setInterval returns a number, not an object with unref()
+            if (typeof this.cleanupLoop === 'object' && typeof this.cleanupLoop.unref === 'function') {
+                this.cleanupLoop.unref();
+            }
         }
     }
 
