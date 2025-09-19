@@ -12,13 +12,209 @@ class kvjs {
         // Initialize the store and expireTimes maps
         this.store = new XMap();
         this.expireTimes = new XMap();
+        
+        // IndexedDB properties
+        this.db = null;
+        this.dbName = 'kvjs-store';
+        this.dbVersion = 1;
+        this.isIndexedDBAvailable = false;
+        this.isInitialized = false;
+        this.initPromise = null;
 
         // wrap the set function to trigger the cleanup interval on each set
         this.storeSet = (key, value) => {
             this.store.set(key, value);
             this._initCleanupLoop(CLEANUP_INTERVAL);
+            // Persist to IndexedDB if available
+            if (this.isIndexedDBAvailable && this.db) {
+                this._persistToIndexedDB(key, value);
+            }
         }
 
+        // Initialize IndexedDB if available
+        this._initIndexedDB();
+    }
+
+    /**
+     * Initialize IndexedDB if available in the browser environment
+     * @private
+     */
+    _initIndexedDB() {
+        // Check if we're in a browser environment and IndexedDB is available
+        if (typeof window !== 'undefined' && window.indexedDB) {
+            this.isIndexedDBAvailable = true;
+            this.initPromise = this._setupIndexedDB();
+        } else {
+            this.isInitialized = true;
+        }
+    }
+
+    /**
+     * Set up IndexedDB database and load existing data
+     * @private
+     * @returns {Promise<void>}
+     */
+    async _setupIndexedDB() {
+        try {
+            this.db = await this._openDatabase();
+            await this._loadFromIndexedDB();
+            this.isInitialized = true;
+        } catch (error) {
+            console.warn('Failed to initialize IndexedDB:', error);
+            this.isIndexedDBAvailable = false;
+            this.isInitialized = true;
+        }
+    }
+
+    /**
+     * Open IndexedDB database
+     * @private
+     * @returns {Promise<IDBDatabase>}
+     */
+    _openDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.dbVersion);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => resolve(request.result);
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                
+                // Create object stores if they don't exist
+                if (!db.objectStoreNames.contains('store')) {
+                    db.createObjectStore('store', { keyPath: 'key' });
+                }
+                
+                if (!db.objectStoreNames.contains('expireTimes')) {
+                    db.createObjectStore('expireTimes', { keyPath: 'key' });
+                }
+            };
+        });
+    }
+
+    /**
+     * Load existing data from IndexedDB into memory
+     * @private
+     * @returns {Promise<void>}
+     */
+    async _loadFromIndexedDB() {
+        if (!this.db) return;
+
+        try {
+            const transaction = this.db.transaction(['store', 'expireTimes'], 'readonly');
+            const storeObjectStore = transaction.objectStore('store');
+            const expireTimesObjectStore = transaction.objectStore('expireTimes');
+
+            // Load store data
+            const storeRequest = storeObjectStore.getAll();
+            const expireTimesRequest = expireTimesObjectStore.getAll();
+
+            const [storeData, expireTimesData] = await Promise.all([
+                new Promise((resolve, reject) => {
+                    storeRequest.onsuccess = () => resolve(storeRequest.result);
+                    storeRequest.onerror = () => reject(storeRequest.error);
+                }),
+                new Promise((resolve, reject) => {
+                    expireTimesRequest.onsuccess = () => resolve(expireTimesRequest.result);
+                    expireTimesRequest.onerror = () => reject(expireTimesRequest.error);
+                })
+            ]);
+
+            // Populate in-memory stores
+            storeData.forEach(item => {
+                this.store.set(item.key, item.value);
+            });
+
+            expireTimesData.forEach(item => {
+                this.expireTimes.set(item.key, item.expireTime);
+            });
+
+            // Clean up any expired keys that were loaded
+            const currentTime = Date.now();
+            for (const [key, expireTime] of this.expireTimes.entries()) {
+                if (currentTime > expireTime) {
+                    this.store.delete(key);
+                    this.expireTimes.delete(key);
+                    // Also remove from IndexedDB
+                    this._removeFromIndexedDB(key);
+                }
+            }
+
+        } catch (error) {
+            console.warn('Failed to load data from IndexedDB:', error);
+        }
+    }
+
+    /**
+     * Persist a key-value pair to IndexedDB
+     * @private
+     * @param {*} key - The key to persist
+     * @param {*} value - The value to persist
+     */
+    async _persistToIndexedDB(key, value) {
+        if (!this.db) return;
+
+        try {
+            const transaction = this.db.transaction(['store'], 'readwrite');
+            const objectStore = transaction.objectStore('store');
+            objectStore.put({ key, value });
+        } catch (error) {
+            console.warn('Failed to persist to IndexedDB:', error);
+        }
+    }
+
+    /**
+     * Persist expiration time to IndexedDB
+     * @private
+     * @param {*} key - The key
+     * @param {number} expireTime - The expiration timestamp
+     */
+    async _persistExpirationToIndexedDB(key, expireTime) {
+        if (!this.db) return;
+
+        try {
+            const transaction = this.db.transaction(['expireTimes'], 'readwrite');
+            const objectStore = transaction.objectStore('expireTimes');
+            if (expireTime !== undefined) {
+                objectStore.put({ key, expireTime });
+            } else {
+                objectStore.delete(key);
+            }
+        } catch (error) {
+            console.warn('Failed to persist expiration to IndexedDB:', error);
+        }
+    }
+
+    /**
+     * Remove a key from IndexedDB
+     * @private
+     * @param {*} key - The key to remove
+     */
+    async _removeFromIndexedDB(key) {
+        if (!this.db) return;
+
+        try {
+            const transaction = this.db.transaction(['store', 'expireTimes'], 'readwrite');
+            const storeObjectStore = transaction.objectStore('store');
+            const expireTimesObjectStore = transaction.objectStore('expireTimes');
+            
+            storeObjectStore.delete(key);
+            expireTimesObjectStore.delete(key);
+        } catch (error) {
+            console.warn('Failed to remove from IndexedDB:', error);
+        }
+    }
+
+    /**
+     * Wait for IndexedDB initialization to complete
+     * @returns {Promise<void>}
+     */
+    async waitForInitialization() {
+        if (this.isInitialized) return;
+        if (this.initPromise) {
+            await this.initPromise;
+        }
     }
 
     /**
@@ -91,9 +287,17 @@ class kvjs {
             }
             if (expireTime !== undefined) {
                 this.expireTimes.set(key, expireTime);
+                // Persist expiration to IndexedDB if available
+                if (this.isIndexedDBAvailable && this.db) {
+                    this._persistExpirationToIndexedDB(key, expireTime);
+                }
             }
         } else {
             this.expireTimes.delete(key);
+            // Remove expiration from IndexedDB if available
+            if (this.isIndexedDBAvailable && this.db) {
+                this._persistExpirationToIndexedDB(key, undefined);
+            }
         }
 
         return get ? oldValue : true;
@@ -130,6 +334,10 @@ class kvjs {
             // Delete the key from the Map and delete any existing expiration time.
             if (this.store.delete(key)) {
                 this.expireTimes.delete(key);
+                // Remove from IndexedDB if available
+                if (this.isIndexedDBAvailable && this.db) {
+                    this._removeFromIndexedDB(key);
+                }
                 numDeleted++;
             }
         }
@@ -2905,6 +3113,10 @@ class kvjs {
         if (expireTime && Date.now() > expireTime) {
             this.store.delete(key);
             this.expireTimes.delete(key);
+            // Remove from IndexedDB if available
+            if (this.isIndexedDBAvailable && this.db) {
+                this._removeFromIndexedDB(key);
+            }
             return true;
         }
         return false;
@@ -3046,8 +3258,32 @@ class kvjs {
         // Clear all expiration times from the expirations map
         this.expireTimes.clear();
 
+        // Clear IndexedDB if available
+        if (this.isIndexedDBAvailable && this.db) {
+            this._clearIndexedDB();
+        }
+
         // Return true to indicate that the function was successful
         return true;
+    }
+
+    /**
+     * Clear all data from IndexedDB
+     * @private
+     */
+    async _clearIndexedDB() {
+        if (!this.db) return;
+
+        try {
+            const transaction = this.db.transaction(['store', 'expireTimes'], 'readwrite');
+            const storeObjectStore = transaction.objectStore('store');
+            const expireTimesObjectStore = transaction.objectStore('expireTimes');
+            
+            storeObjectStore.clear();
+            expireTimesObjectStore.clear();
+        } catch (error) {
+            console.warn('Failed to clear IndexedDB:', error);
+        }
     }
 }
 
