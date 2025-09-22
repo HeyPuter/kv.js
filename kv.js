@@ -8,15 +8,20 @@ const XMap = require('./XMap.js');
 const CLEANUP_INTERVAL = 20;
 
 class kvjs {
-    constructor() {
+    constructor(options = {}) {
+        // Handle different parameter formats for backward compatibility
+        if (typeof options === 'string') {
+            options = { dbName: options };
+        }
+        
         // Initialize the store and expireTimes maps
         this.store = new XMap();
         this.expireTimes = new XMap();
         
         // IndexedDB properties
         this.db = null;
-        this.dbName = 'kvjs-store';
-        this.dbVersion = 1;
+        this.dbName = options.dbName || 'kvjs-store';
+        this.dbVersion = options.dbVersion || 1;
         this.isIndexedDBAvailable = false;
         this.isInitialized = false;
         this.initPromise = null;
