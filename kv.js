@@ -708,6 +708,10 @@ class kvjs {
             return 0;
         }
         this.expireTimes.delete(key);
+        // Remove expiration from IndexedDB if available
+        if (this.isIndexedDBAvailable && this.db) {
+            this._persistExpirationToIndexedDB(key, undefined);
+        }
         return 1;
     }
 
