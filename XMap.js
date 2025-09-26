@@ -81,20 +81,21 @@ class XMap {
     set(key, value) {
         let targetMap = this.#pool[0];
 
-        if (this.#pool.length > 1) {
-            for (const map of this.#pool) {
-                if (map.has(key)) {
-                    targetMap = map;
-                    break;
-                }
+        // First check if the key already exists in any map
+        for (const map of this.#pool) {
+            if (map.has(key)) {
+                targetMap = map;
+                break;
             }
         }
 
-        targetMap.set(key, value);
-
-        if (this.#pool[0].size === 16777215) {
+        // If this is a new key and the target map is at capacity, create a new one
+        if (!targetMap.has(key) && targetMap.size >= 8388608) {
             this.#pool.unshift(new Map());
+            targetMap = this.#pool[0];
         }
+
+        targetMap.set(key, value);
 
         return this;
     }
