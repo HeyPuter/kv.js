@@ -1,6 +1,6 @@
 {
   "name": "@heyputer/kv.js",
-  "version": "0.1.92",
+  "version": "0.2.0",
   "license": "MIT",
   "description": "Fast, modern, in-memory key-value store for JavaScript. The perfect solution for caching in JavaScript.",
   "main": "kv.js",
@@ -22,6 +22,7 @@
     "minimatch": "^9.0.0"
   },
   "devDependencies": {
+    "fake-indexeddb": "^6.0.0",
     "mocha": "^10.2.0",
     "typescript": "^5.1.3"
   }
