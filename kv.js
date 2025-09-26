@@ -20,7 +20,7 @@ class kvjs {
         
         // IndexedDB properties
         this.db = null;
-        this.dbName = options.dbName || 'kvjs-store';
+        this.dbName = options.dbName;
         this.dbVersion = options.dbVersion || 1;
         this.isIndexedDBAvailable = false;
         this.isInitialized = false;
@@ -45,8 +45,8 @@ class kvjs {
      * @private
      */
     _initIndexedDB() {
-        // Check if we're in a browser environment and IndexedDB is available
-        if (typeof window !== 'undefined' && window.indexedDB) {
+        // Check if we're in a browser environment, IndexedDB is available, and dbName was explicitly provided
+        if (typeof window !== 'undefined' && window.indexedDB && this.dbName) {
             this.isIndexedDBAvailable = true;
             this.initPromise = this._setupIndexedDB();
         } else {

@@ -48,17 +48,6 @@ describe('IndexedDB Persistence', () => {
             assert(objectStoreNames.includes('expireTimes'));
         });
 
-        it('should use default database name when not provided', async () => {
-            const defaultInstance = new kvjs();
-            await defaultInstance.waitForInitialization();
-            
-            assert.strictEqual(defaultInstance.dbName, 'kvjs-store');
-            
-            if (defaultInstance.db) {
-                defaultInstance.db.close();
-            }
-        });
-
         it('should use custom database version', async () => {
             const customInstance = new kvjs({ 
                 dbName: 'test-custom-version', 
@@ -71,6 +60,17 @@ describe('IndexedDB Persistence', () => {
             if (customInstance.db) {
                 customInstance.db.close();
             }
+        });
+
+        it('should NOT initialize IndexedDB when dbName is not explicitly provided', async () => {
+            const defaultInstance = new kvjs();
+            await defaultInstance.waitForInitialization();
+            
+            // IndexedDB should not be available when no dbName is explicitly provided
+            assert.strictEqual(defaultInstance.isIndexedDBAvailable, false);
+            assert.strictEqual(defaultInstance.isInitialized, true);
+            assert.strictEqual(defaultInstance.db, null);
+            assert.strictEqual(defaultInstance.dbName, undefined); // No default name
         });
     });
 
