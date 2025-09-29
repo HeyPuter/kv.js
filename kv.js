@@ -1,7 +1,85 @@
 'use strict';
 
-const {minimatch} = require('minimatch');
 const XMap = require('./XMap.js');
+
+/**
+ * Simple pattern matching function to replace minimatch
+ * Supports *, ?, [abc], [a-c], {txt,log} patterns with case-insensitive matching
+ * @param {string} str - The string to test
+ * @param {string} pattern - The glob pattern
+ * @returns {boolean} - Whether the string matches the pattern
+ */
+function simpleMatch(str, pattern) {
+    // Convert to lowercase for case-insensitive matching
+    const lowerStr = str.toLowerCase();
+    const lowerPattern = pattern.toLowerCase();
+    
+    // Handle empty pattern
+    if (lowerPattern === '') return false;
+    
+    // Handle exact match
+    if (lowerPattern.indexOf('*') === -1 && lowerPattern.indexOf('?') === -1 && 
+        lowerPattern.indexOf('[') === -1 && lowerPattern.indexOf('{') === -1) {
+        return lowerStr === lowerPattern;
+    }
+    
+    // Handle brace expansion {txt,log} -> (txt|log)
+    let expandedPattern = lowerPattern;
+    const braceMatch = expandedPattern.match(/\{([^}]+)\}/);
+    if (braceMatch) {
+        const options = braceMatch[1].split(',');
+        const alternatives = options.map(opt => expandedPattern.replace(braceMatch[0], opt.trim()));
+        return alternatives.some(alt => simpleMatch(str, alt));
+    }
+    
+    // Convert glob pattern to regex
+    let regexPattern = '';
+    let i = 0;
+    
+    while (i < expandedPattern.length) {
+        const char = expandedPattern[i];
+        
+        if (char === '*') {
+            regexPattern += '.*';
+        } else if (char === '?') {
+            regexPattern += '.';
+        } else if (char === '[') {
+            // Handle character class [abc] or [a-c]
+            let j = i + 1;
+            let charClass = '[';
+            
+            while (j < expandedPattern.length && expandedPattern[j] !== ']') {
+                charClass += expandedPattern[j];
+                j++;
+            }
+            
+            if (j < expandedPattern.length) {
+                charClass += ']';
+                regexPattern += charClass;
+                i = j;
+            } else {
+                // Malformed character class, treat [ as literal
+                regexPattern += '\\[';
+            }
+        } else {
+            // Escape special regex characters
+            if (/[.+^${}()|\\]/.test(char)) {
+                regexPattern += '\\' + char;
+            } else {
+                regexPattern += char;
+            }
+        }
+        i++;
+    }
+    
+    try {
+        const regex = new RegExp('^' + regexPattern + '$', 'i');
+        return regex.test(str);
+    } catch (e) {
+        // If regex is invalid, fall back to exact match
+        return lowerStr === lowerPattern;
+    }
+}
 
 // The cleanup loop runs as long as there's at least one key set, and will
 // regularly check for expired keys and remove them from the store.
@@ -483,7 +561,7 @@ class kvjs {
         const keys = [];
     
         for (const [key, value] of this.store.entries()) {
-            if (minimatch(key, pattern, { nocase: true })) {
+            if (simpleMatch(key, pattern)) {
                 const expireTime = this.expireTimes.get(key);
                 if (expireTime === undefined || expireTime > Date.now()) {
                     keys.push(key);
